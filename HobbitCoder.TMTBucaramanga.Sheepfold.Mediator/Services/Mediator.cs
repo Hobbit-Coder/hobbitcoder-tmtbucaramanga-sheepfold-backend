@@ -33,7 +33,6 @@ public sealed class Mediator : IMediator
 
         var behaviors = _serviceProvider.GetServices<IPipelineBehavior<TRequest, TResponse>>().ToArray();
 
-        // Se recorre en reversa para que el primer behavior registrado quede en la capa externa.
         for (var index = behaviors.Length - 1; index >= 0; index--)
         {
             var behavior = behaviors[index];

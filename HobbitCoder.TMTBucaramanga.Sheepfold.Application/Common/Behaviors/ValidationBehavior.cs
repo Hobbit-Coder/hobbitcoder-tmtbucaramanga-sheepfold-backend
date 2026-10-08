@@ -9,6 +9,10 @@ namespace HobbitCoder.TMTBucaramanga.Sheepfold.Application.Common.Behaviors;
 /// llegar al handler. Sin este behavior los validadores del proyecto quedan registrados
 /// pero nunca se invocan.
 /// </summary>
+/// <remarks>
+/// Los validadores se ejecutan en paralelo y cada uno recibe su propio <see cref="ValidationContext{T}"/>:
+/// si compartieran uno, cada resultado acumularía los fallos de los demás y los errores se duplicarían.
+/// </remarks>
 public sealed class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>
 {
@@ -23,7 +27,6 @@ public sealed class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<
     {
         ArgumentNullException.ThrowIfNull(next);
 
-        // Sin validadores no hay nada que hacer: se evita construir la máquina de estados async.
         return _validators.Any()
             ? ValidateAndContinueAsync(request, next, cancellationToken)
             : next(cancellationToken);
@@ -31,8 +34,6 @@ public sealed class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<
 
     private async Task<TResponse> ValidateAndContinueAsync(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
     {
-        // Un ValidationContext por validador: compartir uno entre validaciones concurrentes
-        // hace que cada resultado acumule los fallos de los demás y los errores se dupliquen.
         var results = await Task.WhenAll(_validators.Select(validator =>
             validator.ValidateAsync(new ValidationContext<TRequest>(request), cancellationToken)));
 

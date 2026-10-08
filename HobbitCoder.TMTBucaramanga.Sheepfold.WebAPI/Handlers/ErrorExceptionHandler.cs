@@ -4,6 +4,16 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace HobbitCoder.TMTBucaramanga.Sheepfold.WebAPI.Handlers;
 
+/// <summary>
+/// Traduce las excepciones no controladas a respuestas <see cref="ProblemDetails"/> con el código HTTP
+/// que corresponde. El detalle técnico (tipo, stack trace) solo se incluye en desarrollo.
+/// </summary>
+/// <remarks>
+/// El manejador se busca recorriendo la jerarquía de la excepción, así que una subclase usa el de su
+/// excepción base. Los conflictos de negocio se lanzan como <see cref="ConflictException"/>;
+/// <see cref="InvalidOperationException"/> no se traduce a 409 porque EF Core y el framework la usan
+/// para errores internos, que deben responder 500.
+/// </remarks>
 public class ErrorExceptionHandler : IExceptionHandler
 {
     private readonly ILogger<ErrorExceptionHandler> _logger;
@@ -27,12 +37,13 @@ public class ErrorExceptionHandler : IExceptionHandler
 
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
-        var exceptionType = exception.GetType();
-
-        if (ExceptionHandlers.TryGetValue(exceptionType, out var handler))
+        for (var exceptionType = exception.GetType(); exceptionType is not null; exceptionType = exceptionType.BaseType)
         {
-            await handler.Invoke(httpContext, exception);
-            return true;
+            if (ExceptionHandlers.TryGetValue(exceptionType, out var handler))
+            {
+                await handler.Invoke(httpContext, exception);
+                return true;
+            }
         }
 
         await HandleGenericExceptionAsync(httpContext, exception);
@@ -94,7 +105,6 @@ public class ErrorExceptionHandler : IExceptionHandler
         await httpContext.Response.WriteAsJsonAsync(new ProblemDetails
         {
             Instance = httpContext.Request.Path,
-            // A diferencia del 409 genérico, aquí el motivo es de negocio y el cliente lo necesita.
             Detail = ex.Message,
             Status = StatusCodes.Status409Conflict,
             Title = "Conflict",
@@ -130,10 +140,8 @@ public class ErrorExceptionHandler : IExceptionHandler
     {
         var (statusCode, title, detail) = ex switch
         {
-            ArgumentException or ArgumentNullException =>
+            ArgumentException =>
                 (StatusCodes.Status400BadRequest, "Bad Request", "The request contains invalid arguments."),
-            InvalidOperationException =>
-                (StatusCodes.Status409Conflict, "Conflict", "The operation could not be completed due to a conflict."),
             TimeoutException =>
                 (StatusCodes.Status408RequestTimeout, "Request Timeout", "The request has timed out."),
             _ =>

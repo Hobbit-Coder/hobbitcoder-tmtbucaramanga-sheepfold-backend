@@ -1,3 +1,4 @@
+using HobbitCoder.TMTBucaramanga.Sheepfold.Infrastructure.Persistence;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Npgsql;
@@ -17,7 +18,7 @@ public class PostgreSqlHealthCheck : IHealthCheck
     {
         try
         {
-            var connectionString = _configuration["TmtBucaramangaSheepfoldPostgreSQLConnectionString"];
+            var connectionString = _configuration.GetConnectionString(PersistenceConstants.ConnectionStringName);
             ArgumentNullException.ThrowIfNull(connectionString);
 
             using var connection = new NpgsqlConnection(connectionString);

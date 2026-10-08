@@ -17,7 +17,13 @@
     <Project Path="HobbitCoder.TMTBucaramanga.Sheepfold.UnitTests/HobbitCoder.TMTBucaramanga.Sheepfold.UnitTests.csproj" Id="f5ae73e6-8a81-4b4d-8410-d546d1be24ed" />
   </Folder>
   <Folder Name="/5.SolutionItems/">
+    <File Path=".dockerignore" />
+    <File Path=".gitattributes" />
+    <File Path=".gitignore" />
     <File Path="Directory.Build.props" />
     <File Path="Directory.Packages.props" />
+    <File Path="Dockerfile" />
+    <File Path="LICENSE.txt" />
+    <File Path="README.md" />
   </Folder>
 </Solution>

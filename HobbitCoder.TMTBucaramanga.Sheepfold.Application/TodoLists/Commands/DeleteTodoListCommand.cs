@@ -16,35 +16,21 @@ public class DeleteTodoListCommand : IRequest
 public class DeleteTodoListCommandHandler : IRequestHandler<DeleteTodoListCommand, Unit>
 {
     private readonly IApplicationDbContext _dbContext;
-    private readonly ICurrentUserService _currentUserService;
 
-    public DeleteTodoListCommandHandler(IApplicationDbContext context, ICurrentUserService currentUserService)
+    public DeleteTodoListCommandHandler(IApplicationDbContext context)
     {
         _dbContext = context;
-        _currentUserService = currentUserService;
     }
 
     public async Task<Unit> Handle(DeleteTodoListCommand request, CancellationToken cancellationToken = default)
     {
         var todoList = await _dbContext.TodoLists
             .Include(todoList => todoList.TodoItems)
-            .FirstOrDefaultAsync(todoList => todoList.Id == request.Id && !todoList.IsDeleted, cancellationToken)
+            .FirstOrDefaultAsync(todoList => todoList.Id == request.Id, cancellationToken)
             ?? throw new NotFoundException(nameof(TodoList), request.Id);
 
-        var deletedAt = DateTime.UtcNow;
-        var deletedBy = _currentUserService.UserId;
-
-        // Borrado lógico en cascada: los items no deben quedar visibles colgando de una lista eliminada.
-        foreach (var todoItem in todoList.TodoItems.Where(todoItem => !todoItem.IsDeleted))
-        {
-            todoItem.IsDeleted = true;
-            todoItem.DeletedAt = deletedAt;
-            todoItem.DeletedBy = deletedBy;
-        }
-
-        todoList.IsDeleted = true;
-        todoList.DeletedAt = deletedAt;
-        todoList.DeletedBy = deletedBy;
+        _dbContext.TodoItems.RemoveRange(todoList.TodoItems);
+        _dbContext.TodoLists.Remove(todoList);
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 

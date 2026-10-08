@@ -1,56 +1,63 @@
-﻿using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Common.Interfaces;
+using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Common.Interfaces;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.Common;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace HobbitCoder.TMTBucaramanga.Sheepfold.Infrastructure.Persistence.Interceptors
+namespace HobbitCoder.TMTBucaramanga.Sheepfold.Infrastructure.Persistence.Interceptors;
+
+/// <summary>
+/// Completa los campos de auditoría al guardar y convierte en borrado lógico la eliminación
+/// de entidades <see cref="ISoftDeleteableEntity"/>: los handlers solo hacen <c>Remove</c>,
+/// sin asignar fechas ni usuarios a mano.
+/// </summary>
+public class AuditableEntitySaveChangesInterceptor : SaveChangesInterceptor
 {
-    public class AuditableEntitySaveChangesInterceptor : SaveChangesInterceptor
+    private readonly ICurrentUserService _currentUserService;
+
+    public AuditableEntitySaveChangesInterceptor(ICurrentUserService currentUserService)
     {
-        private readonly ICurrentUserService _currentUserService;
+        _currentUserService = currentUserService;
+    }
 
-        public AuditableEntitySaveChangesInterceptor(ICurrentUserService currentUserService)
+    public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
+    {
+        UpdateEntities(eventData.Context);
+        return base.SavingChanges(eventData, result);
+    }
+
+    public override ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
+    {
+        UpdateEntities(eventData.Context);
+        return base.SavingChangesAsync(eventData, result, cancellationToken);
+    }
+
+    private void UpdateEntities(DbContext? context)
+    {
+        if (context == null) return;
+
+        var currentUser = _currentUserService.UserId;
+        var now = DateTime.UtcNow;
+
+        foreach (var entry in context.ChangeTracker.Entries<IAuditableEntity>().ToList())
         {
-            _currentUserService = currentUserService;
-        }
-
-        public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
-        {
-            UpdateEntities(eventData.Context);
-            return base.SavingChanges(eventData, result);
-        }
-
-        public override ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
-        {
-            UpdateEntities(eventData.Context);
-            return base.SavingChangesAsync(eventData, result, cancellationToken);
-        }
-
-        private void UpdateEntities(DbContext? context)
-        {
-            if (context == null) return;
-
-            var currentUser = _currentUserService.UserId ?? "System";
-            var now = DateTime.UtcNow;
-
-            foreach (var entry in context.ChangeTracker.Entries().Where(e => e.Entity is IAuditableEntity))
+            switch (entry.State)
             {
-                switch (entry.State)
-                {
-                    case EntityState.Added:
-                        entry.Property("CreatedBy").CurrentValue = currentUser;
-                        entry.Property("CreatedDate").CurrentValue = now;
-                        break;
+                case EntityState.Added:
+                    entry.Entity.CreatedBy = currentUser;
+                    entry.Entity.CreatedDate = now;
+                    break;
 
-                    case EntityState.Modified:
-                        entry.Property("UpdatedBy").CurrentValue = currentUser;
-                        entry.Property("UpdatedDate").CurrentValue = now;
-                        break;
-                }
+                case EntityState.Modified:
+                    entry.Entity.UpdatedBy = currentUser;
+                    entry.Entity.UpdatedDate = now;
+                    break;
+
+                case EntityState.Deleted when entry.Entity is ISoftDeleteableEntity softDeleteableEntity:
+                    entry.State = EntityState.Modified;
+                    softDeleteableEntity.IsDeleted = true;
+                    softDeleteableEntity.DeletedAt = now;
+                    softDeleteableEntity.DeletedBy = currentUser;
+                    break;
             }
         }
     }

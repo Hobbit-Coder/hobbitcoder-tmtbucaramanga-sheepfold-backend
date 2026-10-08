@@ -3,12 +3,19 @@ using HobbitCoder.TMTBucaramanga.Sheepfold.Application.TodoLists.Common;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Application.TodoLists.Queries;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Mediator.Interfaces;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Mediator.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HobbitCoder.TMTBucaramanga.Sheepfold.WebAPI.Controllers;
 
+/// <summary>
+/// Exige un token de HobbitCoder.TMTBucaramanga.Identity emitido para esta API (audiencia
+/// <c>HobbitCoder.TMTBucaramanga.Sheepfold</c>); sin él responde 401.
+/// </summary>
 [Route("api/[controller]")]
 [ApiController]
+[Authorize]
+[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 public class TodoItemController : ControllerBase
 {
     private readonly IMediator _mediator;

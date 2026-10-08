@@ -25,7 +25,6 @@ public class GetTodoItemsQueryHandler : IRequestHandler<GetTodoItemsQuery, List<
     public async Task<List<TodoItemResponse>> Handle(GetTodoItemsQuery request, CancellationToken cancellationToken = default)
     {
         var todoItems = await _dbContext.TodoItems
-            .Where(todoItem => !todoItem.IsDeleted)
             .Where(todoItem => request.TodoListId == null || todoItem.TodoListId == request.TodoListId)
             .Where(todoItem => request.Status == null || todoItem.Status == request.Status)
             .Select(todoItem => new TodoItemResponse

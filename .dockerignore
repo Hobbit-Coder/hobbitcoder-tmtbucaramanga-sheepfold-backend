@@ -1,0 +1,13 @@
+# Solo el código fuente entra al contexto de construcción.
+**/bin/
+**/obj/
+**/.vs/
+**/*.user
+.git/
+.gitignore
+.gitattributes
+Dockerfile
+.dockerignore
+**/*.pem
+**/*.http
+*.md

@@ -25,14 +25,13 @@ public class GetTodoListByIdQueryHandler : IRequestHandler<GetTodoListByIdQuery,
     public async Task<TodoListResponse> Handle(GetTodoListByIdQuery request, CancellationToken cancellationToken = default)
     {
         var todoList = await _dbContext.TodoLists
-            .Where(todoList => todoList.Id == request.Id && !todoList.IsDeleted)
+            .Where(todoList => todoList.Id == request.Id)
             .Select(todoList => new TodoListResponse
             {
                 Id = todoList.Id,
                 Title = todoList.Title,
                 Status = todoList.Status,
                 TodoItems = todoList.TodoItems
-                    .Where(todoItem => !todoItem.IsDeleted)
                     .Select(todoItem => new TodoItemResponse
                     {
                         Id = todoItem.Id,

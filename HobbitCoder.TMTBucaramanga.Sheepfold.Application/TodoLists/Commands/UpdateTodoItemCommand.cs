@@ -34,23 +34,17 @@ public class UpdateTodoItemCommandHandler : IRequestHandler<UpdateTodoItemComman
     public async Task<Unit> Handle(UpdateTodoItemCommand request, CancellationToken cancellationToken = default)
     {
         var todoItem = await _dbContext.TodoItems
-            .FirstOrDefaultAsync(todoItem => todoItem.Id == request.Id && !todoItem.IsDeleted, cancellationToken)
+            .FirstOrDefaultAsync(todoItem => todoItem.Id == request.Id, cancellationToken)
             ?? throw new NotFoundException(nameof(TodoItem), request.Id);
 
         var wasCompleted = todoItem.Status == TodoStatus.Completed;
-        var updatedBy = _currentUserService.UserId;
-        var updatedAt = DateTime.UtcNow;
 
         todoItem.Title = request.Title;
         todoItem.Description = request.Description;
         todoItem.Status = request.Status;
-        todoItem.UpdatedBy = updatedBy;
-        todoItem.UpdatedDate = updatedAt;
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        // Solo se notifica la transición a completado, y después de guardar, para que los
-        // handlers nunca reaccionen a un cambio que no quedó persistido.
         if (!wasCompleted && todoItem.Status == TodoStatus.Completed)
         {
             await _mediator.Publish(new TodoItemCompletedNotification
@@ -58,8 +52,8 @@ public class UpdateTodoItemCommandHandler : IRequestHandler<UpdateTodoItemComman
                 TodoItemId = todoItem.Id,
                 TodoListId = todoItem.TodoListId,
                 Title = todoItem.Title,
-                CompletedBy = updatedBy,
-                CompletedAt = updatedAt
+                CompletedBy = _currentUserService.UserId,
+                CompletedAt = todoItem.UpdatedDate ?? DateTime.UtcNow
             }, cancellationToken);
         }
 

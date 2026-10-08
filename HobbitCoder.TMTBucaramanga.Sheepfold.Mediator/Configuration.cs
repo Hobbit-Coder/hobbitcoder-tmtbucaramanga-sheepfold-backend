@@ -17,12 +17,8 @@ public static class Configuration
     {
         services.TryAddScoped<IMediator, Services.Mediator>();
 
-        // Ejecuta los handlers de una notificación en secuencia. Para ejecutarlos en paralelo se
-        // registra TaskWhenAllPublisher (ver sus restricciones con el DbContext); al usar TryAdd,
-        // se respeta un INotificationPublisher registrado antes de llamar a este método.
         services.TryAddSingleton<INotificationPublisher, ForeachAwaitPublisher>();
 
-        // Un handler de notificación puede atender varias notificaciones: se registra una vez por cada una.
         var handlerContracts = new[] { typeof(IRequestHandler<,>), typeof(INotificationHandler<>) };
 
         var registrations = assemblies

@@ -16,23 +16,19 @@ public class DeleteTodoItemCommand : IRequest
 public class DeleteTodoItemCommandHandler : IRequestHandler<DeleteTodoItemCommand, Unit>
 {
     private readonly IApplicationDbContext _dbContext;
-    private readonly ICurrentUserService _currentUserService;
 
-    public DeleteTodoItemCommandHandler(IApplicationDbContext context, ICurrentUserService currentUserService)
+    public DeleteTodoItemCommandHandler(IApplicationDbContext context)
     {
         _dbContext = context;
-        _currentUserService = currentUserService;
     }
 
     public async Task<Unit> Handle(DeleteTodoItemCommand request, CancellationToken cancellationToken = default)
     {
         var todoItem = await _dbContext.TodoItems
-            .FirstOrDefaultAsync(todoItem => todoItem.Id == request.Id && !todoItem.IsDeleted, cancellationToken)
+            .FirstOrDefaultAsync(todoItem => todoItem.Id == request.Id, cancellationToken)
             ?? throw new NotFoundException(nameof(TodoItem), request.Id);
 
-        todoItem.IsDeleted = true;
-        todoItem.DeletedAt = DateTime.UtcNow;
-        todoItem.DeletedBy = _currentUserService.UserId;
+        _dbContext.TodoItems.Remove(todoItem);
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 

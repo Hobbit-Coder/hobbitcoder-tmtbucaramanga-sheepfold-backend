@@ -1,7 +1,9 @@
 ﻿using HobbitCoder.TMTBucaramanga.Sheepfold.Infrastructure;
+using HobbitCoder.TMTBucaramanga.Sheepfold.Infrastructure.Persistence;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Infrastructure.Persistence.Contexts;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Infrastructure.Persistence.Interceptors;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
@@ -18,10 +20,10 @@ public static class Configuration
         builder.AddInfrastructure();
 
         builder.Services.AddDbContext<SheepfoldContext>((serviceProvider, options) =>
-            options.UseNpgsql(builder.Configuration["TmtBucaramangaSheepfoldPostgreSQLConnectionString"], npgsqlOptions =>
+            options.UseNpgsql(builder.Configuration.GetConnectionString(PersistenceConstants.ConnectionStringName), npgsqlOptions =>
             {
                 npgsqlOptions.MigrationsAssembly(typeof(Configuration).Assembly.FullName);
-                npgsqlOptions.MigrationsHistoryTable("_EFMigrationsHistory", "Sheepfold");
+                npgsqlOptions.MigrationsHistoryTable(PersistenceConstants.MigrationsHistoryTable, PersistenceConstants.Schema);
                 npgsqlOptions.EnableRetryOnFailure(3);
             })
             .AddInterceptors(

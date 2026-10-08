@@ -57,7 +57,6 @@ public class CompleteTodoListOnTodoItemCompletedHandler : INotificationHandler<T
 
         var hasPendingItems = await _dbContext.TodoItems
             .AnyAsync(todoItem => todoItem.TodoListId == notification.TodoListId
-                && !todoItem.IsDeleted
                 && todoItem.Status != TodoStatus.Completed, cancellationToken);
 
         if (hasPendingItems)
@@ -67,7 +66,6 @@ public class CompleteTodoListOnTodoItemCompletedHandler : INotificationHandler<T
 
         var todoList = await _dbContext.TodoLists
             .FirstOrDefaultAsync(todoList => todoList.Id == notification.TodoListId
-                && !todoList.IsDeleted
                 && todoList.Status != TodoStatus.Completed, cancellationToken);
 
         if (todoList is null)
@@ -75,10 +73,7 @@ public class CompleteTodoListOnTodoItemCompletedHandler : INotificationHandler<T
             return;
         }
 
-        // La lista se completa por la acción del usuario que completó su último item.
         todoList.Status = TodoStatus.Completed;
-        todoList.UpdatedBy = notification.CompletedBy;
-        todoList.UpdatedDate = notification.CompletedAt;
 
         await _dbContext.SaveChangesAsync(cancellationToken);
     }

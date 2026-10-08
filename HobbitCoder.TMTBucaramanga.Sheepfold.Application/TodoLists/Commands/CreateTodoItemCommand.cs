@@ -4,9 +4,7 @@ using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Common.Interfaces;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Enums;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Mediator.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using Microsoft.EntityFrameworkCore;
 
 namespace HobbitCoder.TMTBucaramanga.Sheepfold.Application.TodoLists.Commands;
 
@@ -29,6 +27,11 @@ public class CreateTodoItemCommandHandler : IRequestHandler<CreateTodoItemComman
 
     public async Task<Guid> Handle(CreateTodoItemCommand request, CancellationToken cancellationToken = default)
     {
+        if (!await _dbContext.TodoLists.AnyAsync(todoList => todoList.Id == request.TodoListId, cancellationToken))
+        {
+            throw new NotFoundException(nameof(TodoList), request.TodoListId);
+        }
+
         var todoItem = new TodoItem
         {
             TodoListId = request.TodoListId,

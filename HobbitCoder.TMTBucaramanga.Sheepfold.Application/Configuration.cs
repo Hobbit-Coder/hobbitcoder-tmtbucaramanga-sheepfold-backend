@@ -17,10 +17,8 @@ public static partial class Configuration
     {
         builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
-        // Los handlers se descubren por ensamblado, igual que los validadores de FluentValidation.
         builder.Services.AddMediator(Assembly.GetExecutingAssembly());
 
-        // El orden de registro es el orden de ejecución: LoggingBehavior envuelve a todos.
         builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
         builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 

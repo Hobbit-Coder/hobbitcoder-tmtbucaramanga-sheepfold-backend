@@ -19,24 +19,20 @@ public class UpdateTodoListCommand : IRequest
 public class UpdateTodoListCommandHandler : IRequestHandler<UpdateTodoListCommand, Unit>
 {
     private readonly IApplicationDbContext _dbContext;
-    private readonly ICurrentUserService _currentUserService;
 
-    public UpdateTodoListCommandHandler(IApplicationDbContext context, ICurrentUserService currentUserService)
+    public UpdateTodoListCommandHandler(IApplicationDbContext context)
     {
         _dbContext = context;
-        _currentUserService = currentUserService;
     }
 
     public async Task<Unit> Handle(UpdateTodoListCommand request, CancellationToken cancellationToken = default)
     {
         var todoList = await _dbContext.TodoLists
-            .FirstOrDefaultAsync(todoList => todoList.Id == request.Id && !todoList.IsDeleted, cancellationToken)
+            .FirstOrDefaultAsync(todoList => todoList.Id == request.Id, cancellationToken)
             ?? throw new NotFoundException(nameof(TodoList), request.Id);
 
         todoList.Title = request.Title;
         todoList.Status = request.Status;
-        todoList.UpdatedBy = _currentUserService.UserId;
-        todoList.UpdatedDate = DateTime.UtcNow;
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 

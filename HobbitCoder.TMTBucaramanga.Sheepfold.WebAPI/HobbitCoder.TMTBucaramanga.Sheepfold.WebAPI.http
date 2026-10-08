@@ -1,6 +1,194 @@
 @HobbitCoder.TMTBucaramanga.Sheepfold.WebAPI_HostAddress = http://localhost:5280
+# Identity debe estar corriendo con su perfil https (https://localhost:7101).
+@IdentityHostAddress = https://localhost:7101
 
-GET {{HobbitCoder.TMTBucaramanga.Sheepfold.WebAPI_HostAddress}}/weatherforecast/
+# Token: el accessToken que devuelve "Iniciar sesión en Identity" (audience de Sheepfold).
+# Es obligatorio en todos los endpoints de TodoList y TodoItem (sin él: 401); su "sub" es el usuario
+# de auditoría (por ejemplo, CompletedBy al completar un item).
+@Token = pega-aqui-el-access-token
+@RefreshToken = pega-aqui-el-refresh-token
+
+# Ids para las peticiones por id: copia el Guid que devuelven los POST de creación (201 Created).
+@TodoListId = 01a0fd28-eb05-7fba-8260-b2345d93bcec
+@TodoItemId = 01a0fd28-eb5c-7c4d-a0c5-09dc8f3d4455
+
+# TodoStatus: 1 = Pending, 2 = InProgress, 3 = Completed
+
+GET {{HobbitCoder.TMTBucaramanga.Sheepfold.WebAPI_HostAddress}}/health
 Accept: application/json
+
+###
+
+# ============================== Identity ==============================
+
+### Iniciar sesión en Identity con la audiencia de Sheepfold
+POST {{IdentityHostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "ana.perez@example.com",
+  "password": "Clave#Segura2026",
+  "audience": "HobbitCoder.TMTBucaramanga.Sheepfold"
+}
+
+### Renovar el token para Sheepfold
+POST {{IdentityHostAddress}}/api/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{RefreshToken}}",
+  "audience": "HobbitCoder.TMTBucaramanga.Sheepfold"
+}
+
+###
+
+# ============================== TodoList ==============================
+
+### Listar todas las listas
+GET {{HobbitCoder.TMTBucaramanga.Sheepfold.WebAPI_HostAddress}}/api/TodoList
+Accept: application/json
+Authorization: Bearer {{Token}}
+
+### Listar listas filtradas por estado
+GET {{HobbitCoder.TMTBucaramanga.Sheepfold.WebAPI_HostAddress}}/api/TodoList?status=1
+Accept: application/json
+Authorization: Bearer {{Token}}
+
+### Obtener una lista por id
+GET {{HobbitCoder.TMTBucaramanga.Sheepfold.WebAPI_HostAddress}}/api/TodoList/{{TodoListId}}
+Accept: application/json
+Authorization: Bearer {{Token}}
+
+### Crear una lista con items
+POST {{HobbitCoder.TMTBucaramanga.Sheepfold.WebAPI_HostAddress}}/api/TodoList
+Content-Type: application/json
+Authorization: Bearer {{Token}}
+
+{
+  "title": "Lista de ejemplo",
+  "status": 1,
+  "items": [
+    { "title": "Primer item", "description": "Descripción del primer item", "status": 1 },
+    { "title": "Segundo item", "description": "Descripción del segundo item", "status": 2 }
+  ]
+}
+
+### Crear una lista sin items
+POST {{HobbitCoder.TMTBucaramanga.Sheepfold.WebAPI_HostAddress}}/api/TodoList
+Content-Type: application/json
+Authorization: Bearer {{Token}}
+
+{
+  "title": "Lista vacía",
+  "status": 1
+}
+
+### Crear una lista inválida (400: título vacío y estado fuera del enum)
+POST {{HobbitCoder.TMTBucaramanga.Sheepfold.WebAPI_HostAddress}}/api/TodoList
+Content-Type: application/json
+Authorization: Bearer {{Token}}
+
+{
+  "title": "",
+  "status": 99
+}
+
+### Actualizar una lista
+PUT {{HobbitCoder.TMTBucaramanga.Sheepfold.WebAPI_HostAddress}}/api/TodoList/{{TodoListId}}
+Content-Type: application/json
+Authorization: Bearer {{Token}}
+
+{
+  "id": "{{TodoListId}}",
+  "title": "Lista de ejemplo (editada)",
+  "status": 2
+}
+
+### Actualizar una lista con id distinto en ruta y cuerpo (400)
+PUT {{HobbitCoder.TMTBucaramanga.Sheepfold.WebAPI_HostAddress}}/api/TodoList/{{TodoListId}}
+Content-Type: application/json
+Authorization: Bearer {{Token}}
+
+{
+  "id": "11111111-1111-1111-1111-111111111111",
+  "title": "Lista de ejemplo (editada)",
+  "status": 2
+}
+
+### Eliminar una lista (también elimina sus items)
+DELETE {{HobbitCoder.TMTBucaramanga.Sheepfold.WebAPI_HostAddress}}/api/TodoList/{{TodoListId}}
+Authorization: Bearer {{Token}}
+
+# ============================== TodoItem ==============================
+
+### Listar todos los items
+GET {{HobbitCoder.TMTBucaramanga.Sheepfold.WebAPI_HostAddress}}/api/TodoItem
+Accept: application/json
+Authorization: Bearer {{Token}}
+
+### Listar items de una lista filtrados por estado
+GET {{HobbitCoder.TMTBucaramanga.Sheepfold.WebAPI_HostAddress}}/api/TodoItem?todoListId={{TodoListId}}&status=1
+Accept: application/json
+Authorization: Bearer {{Token}}
+
+### Obtener un item por id
+GET {{HobbitCoder.TMTBucaramanga.Sheepfold.WebAPI_HostAddress}}/api/TodoItem/{{TodoItemId}}
+Accept: application/json
+Authorization: Bearer {{Token}}
+
+### Crear un item en una lista existente
+POST {{HobbitCoder.TMTBucaramanga.Sheepfold.WebAPI_HostAddress}}/api/TodoItem
+Content-Type: application/json
+Authorization: Bearer {{Token}}
+
+{
+  "todoListId": "{{TodoListId}}",
+  "title": "Nuevo item",
+  "description": "Descripción del nuevo item",
+  "status": 1
+}
+
+### Crear un item en una lista inexistente (404)
+POST {{HobbitCoder.TMTBucaramanga.Sheepfold.WebAPI_HostAddress}}/api/TodoItem
+Content-Type: application/json
+Authorization: Bearer {{Token}}
+
+{
+  "todoListId": "11111111-1111-1111-1111-111111111111",
+  "title": "Item huérfano",
+  "description": "La lista no existe",
+  "status": 1
+}
+
+### Actualizar un item
+PUT {{HobbitCoder.TMTBucaramanga.Sheepfold.WebAPI_HostAddress}}/api/TodoItem/{{TodoItemId}}
+Content-Type: application/json
+Authorization: Bearer {{Token}}
+
+{
+  "id": "{{TodoItemId}}",
+  "title": "Nuevo item (editado)",
+  "description": "Descripción editada",
+  "status": 2
+}
+
+### Completar un item (publica TodoItemCompletedNotification)
+PATCH {{HobbitCoder.TMTBucaramanga.Sheepfold.WebAPI_HostAddress}}/api/TodoItem/{{TodoItemId}}/status
+Content-Type: application/json
+Authorization: Bearer {{Token}}
+
+{
+  "id": "{{TodoItemId}}",
+  "status": 3
+}
+
+### Obtener un item inexistente (404)
+GET {{HobbitCoder.TMTBucaramanga.Sheepfold.WebAPI_HostAddress}}/api/TodoItem/11111111-1111-1111-1111-111111111111
+Accept: application/json
+Authorization: Bearer {{Token}}
+
+### Eliminar un item
+DELETE {{HobbitCoder.TMTBucaramanga.Sheepfold.WebAPI_HostAddress}}/api/TodoItem/{{TodoItemId}}
+Authorization: Bearer {{Token}}
 
 ###
