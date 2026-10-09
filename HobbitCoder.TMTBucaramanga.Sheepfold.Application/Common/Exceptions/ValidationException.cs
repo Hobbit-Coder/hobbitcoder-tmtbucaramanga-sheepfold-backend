@@ -38,4 +38,8 @@ public class ValidationException : Exception
             .GroupBy(failure => failure.PropertyName, failure => failure.ErrorMessage)
             .ToDictionary(group => group.Key, group => group.ToArray());
     }
+
+    /// <summary>Error de validación de un solo campo.</summary>
+    public static ValidationException For(string propertyName, string message) =>
+        new([new ValidationFailure(propertyName, message)]);
 }

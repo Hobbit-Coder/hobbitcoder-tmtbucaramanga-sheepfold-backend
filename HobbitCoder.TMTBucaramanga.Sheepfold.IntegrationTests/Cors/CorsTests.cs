@@ -49,6 +49,21 @@ public class CorsTests
         Assert.False(response.Headers.Contains("Access-Control-Allow-Origin"));
     }
 
+    /// <summary>
+    /// El frontend de Identity lee las responsabilidades de una cuenta en esta API (editor de usuarios); el frontend
+    /// de Sheepfold comparte origen y no necesita CORS.
+    /// </summary>
+    [Fact]
+    public async Task Production_AllowsOnlyTheIdentityFrontend()
+    {
+        using var factory = new CorsFactory(Environments.Production);
+        using var client = factory.CreateClient();
+
+        using var response = await SendPreflightAsync(client, "https://identity.tmtbucaramanga.com", "GET");
+
+        Assert.Equal("https://identity.tmtbucaramanga.com", GetHeader(response, "Access-Control-Allow-Origin"));
+    }
+
     [Theory]
     [InlineData("*", "no admite '*'")]
     [InlineData("https://sheepfold.tmtbucaramanga.com/", "sin barra final")]
@@ -80,7 +95,7 @@ public class CorsTests
 
     private static async Task<HttpResponseMessage> SendPreflightAsync(HttpClient client, string origin, string method)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Options, "/api/TodoList");
+        using var request = new HttpRequestMessage(HttpMethod.Options, "/api/me/context");
         request.Headers.Add("Origin", origin);
         request.Headers.Add("Access-Control-Request-Method", method);
         request.Headers.Add("Access-Control-Request-Headers", "authorization,content-type");

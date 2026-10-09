@@ -1,3 +1,5 @@
+using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Common.Interfaces;
+using HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Enums;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Infrastructure.Persistence.Contexts;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
@@ -18,7 +20,8 @@ namespace HobbitCoder.TMTBucaramanga.Sheepfold.IntegrationTests.Infrastructure;
 /// <summary>
 /// Sheepfold contra un PostgreSQL en Docker con las migraciones aplicadas. En lugar de descargar el
 /// discovery de Identity, la validación JWT recibe un discovery fijo con el issuer y la clave pública de
-/// prueba: el resto de la configuración (audiencia, RS256, vigencia) es la de producción.
+/// prueba: el resto de la configuración (audiencia, RS256, vigencia) es la de producción. El directorio de
+/// Identity y el almacenamiento S3 se reemplazan por dobles de prueba.
 /// </summary>
 /// <remarks>
 /// Que el discovery real de Identity sea compatible con esta configuración lo prueban las pruebas de
@@ -34,6 +37,10 @@ public sealed class SheepfoldApiFixture : WebApplicationFactory<Program>, IAsync
     private readonly PostgreSqlContainer _database = new PostgreSqlBuilder("postgres:17-alpine").Build();
     private readonly RsaSecurityKey _signingKey = new(RSA.Create(2048)) { KeyId = "clave-de-prueba" };
 
+    public TestUserDirectory Directory { get; } = new();
+
+    public InMemoryObjectStorage Storage { get; } = new();
+
     public async ValueTask InitializeAsync()
     {
         await _database.StartAsync();
@@ -48,14 +55,44 @@ public sealed class SheepfoldApiFixture : WebApplicationFactory<Program>, IAsync
         await _database.DisposeAsync();
     }
 
+    public HttpClient CreateApiClient() => CreateClient(new WebApplicationFactoryClientOptions { BaseAddress = new Uri("https://localhost") });
+
+    /// <summary>Registra una cuenta en el directorio de prueba y devuelve su token para esta API.</summary>
+    public TestUser AddUser(UserRole role, Gender? gender = null, bool canRegisterAttendees = false, string? firstName = null)
+    {
+        var id = Guid.CreateVersion7();
+        var name = firstName ?? role.ToString();
+        Directory.Add(new DirectoryUser(id, name, $"Prueba {id.ToString()[..6]}", gender, "+573000000000", new DateOnly(1995, 5, 20),
+            role, true, true, canRegisterAttendees));
+
+        return new TestUser(id, CreateToken(id.ToString(), role: role, permissions: canRegisterAttendees ? ["RegisterAttendees"] : []));
+    }
+
     /// <summary>Token como los que emite Identity, firmado con la clave de prueba.</summary>
     public string CreateToken(
         string subject = "usuario-de-prueba",
         string issuer = Issuer,
         string audience = Audience,
-        SigningCredentials? signingCredentials = null)
+        SigningCredentials? signingCredentials = null,
+        UserRole? role = null,
+        string[]? permissions = null)
     {
         var now = DateTime.UtcNow;
+        var claims = new Dictionary<string, object>
+        {
+            [JwtRegisteredClaimNames.Sub] = subject,
+            [JwtRegisteredClaimNames.Jti] = Guid.NewGuid().ToString()
+        };
+
+        if (role is not null)
+        {
+            claims["role"] = role.Value.ToString();
+        }
+
+        if (permissions is { Length: > 0 })
+        {
+            claims["permission"] = permissions;
+        }
 
         return TokenHandler.CreateToken(new SecurityTokenDescriptor
         {
@@ -64,11 +101,7 @@ public sealed class SheepfoldApiFixture : WebApplicationFactory<Program>, IAsync
             IssuedAt = now,
             NotBefore = now,
             Expires = now.AddMinutes(10),
-            Claims = new Dictionary<string, object>
-            {
-                [JwtRegisteredClaimNames.Sub] = subject,
-                [JwtRegisteredClaimNames.Jti] = Guid.NewGuid().ToString()
-            },
+            Claims = claims,
             SigningCredentials = signingCredentials ?? new SigningCredentials(_signingKey, SecurityAlgorithms.RsaSha256)
         });
     }
@@ -84,12 +117,19 @@ public sealed class SheepfoldApiFixture : WebApplicationFactory<Program>, IAsync
         }));
 
         builder.ConfigureTestServices(services =>
+        {
             services.PostConfigure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
             {
                 var discovery = new OpenIdConnectConfiguration { Issuer = Issuer };
                 discovery.SigningKeys.Add(_signingKey);
 
                 options.ConfigurationManager = new StaticConfigurationManager<OpenIdConnectConfiguration>(discovery);
-            }));
+            });
+
+            services.AddSingleton<IUserDirectory>(Directory);
+            services.AddSingleton<IObjectStorage>(Storage);
+        });
     }
 }
+
+public sealed record TestUser(Guid Id, string Token);

@@ -1,13 +1,17 @@
 using FluentValidation;
+using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Attendance;
+using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Attendees.Common;
+using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Common.Audit;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Common.Behaviors;
+using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Common.Security;
+using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Events.Common;
+using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Notifications.Common;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Mediator;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Mediator.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
-using System;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
 
 namespace HobbitCoder.TMTBucaramanga.Sheepfold.Application;
 
@@ -21,6 +25,18 @@ public static partial class Configuration
 
         builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
         builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+
+        builder.Services.TryAddSingleton(TimeProvider.System);
+
+        // Servicios por petición que comparten reglas entre módulos.
+        builder.Services.AddScoped<MinistryAccess>();
+        builder.Services.AddScoped<AuditTrail>();
+        builder.Services.AddScoped<NotificationDispatcher>();
+        builder.Services.AddScoped<MembershipService>();
+        builder.Services.AddScoped<EventAudienceResolver>();
+        builder.Services.AddScoped<EventOptionsService>();
+        builder.Services.AddScoped<FileStorageService>();
+        builder.Services.AddScoped<AttendanceSheetService>();
 
         return builder;
     }

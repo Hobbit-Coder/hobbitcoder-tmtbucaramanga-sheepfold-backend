@@ -23,11 +23,343 @@ namespace HobbitCoder.TMTBucaramanga.Sheepfold.Persistence.PostgreSQL.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.TodoItem", b =>
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.Attendee", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<DateOnly?>("BirthDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("EducationalStage")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Gender")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<string>("Instagram")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsServer")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LastName", "FirstName");
+
+                    b.ToTable("Attendees", "Sheepfold");
+                });
+
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.AttendeeAttendance", b =>
+                {
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AttendeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Mark")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("EventId", "AttendeeId");
+
+                    b.HasIndex("AttendeeId");
+
+                    b.ToTable("AttendeeAttendances", "Sheepfold");
+                });
+
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.AttendeeContact", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AttendeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("Relationship")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AttendeeId");
+
+                    b.ToTable("AttendeeContacts", "Sheepfold");
+                });
+
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.AttendeeCourse", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AttendeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CourseId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly?>("FinishedOn")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CourseId");
+
+                    b.HasIndex("AttendeeId", "CourseId")
+                        .IsUnique();
+
+                    b.ToTable("AttendeeCourses", "Sheepfold", t =>
+                        {
+                            t.HasCheckConstraint("CK_AttendeeCourses_FinishedOn", "\"FinishedOn\" IS NULL OR \"Status\" = 'Finished'");
+                        });
+                });
+
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.AuditEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
+                    b.Property<string>("ActorUserId")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("After")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Before")
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("EntityId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Module")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<DateTime>("OccurredAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Reference")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EntityId");
+
+                    b.HasIndex("OccurredAt");
+
+                    b.HasIndex("Module", "OccurredAt");
+
+                    b.ToTable("AuditEntries", "Sheepfold");
+                });
+
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.Course", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Courses", "Sheepfold");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("0199c2a0-0000-7000-8000-000000000301"),
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2026, 10, 8, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            Name = "ADN"
+                        },
+                        new
+                        {
+                            Id = new Guid("0199c2a0-0000-7000-8000-000000000302"),
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2026, 10, 8, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            Name = "Llaves del Poder"
+                        },
+                        new
+                        {
+                            Id = new Guid("0199c2a0-0000-7000-8000-000000000303"),
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2026, 10, 8, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            Name = "Madurez Espiritual"
+                        },
+                        new
+                        {
+                            Id = new Guid("0199c2a0-0000-7000-8000-000000000304"),
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2026, 10, 8, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            Name = "IBLI"
+                        });
+                });
+
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.Event", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Audience")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
@@ -46,21 +378,145 @@ namespace HobbitCoder.TMTBucaramanga.Sheepfold.Persistence.PostgreSQL.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.Property<DateTime>("EndsAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("EventTypeId")
+                        .HasColumnType("uuid");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
+                    b.Property<string>("Location")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<bool>("RequiresAttendance")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("StartsAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
 
-                    b.Property<Guid>("TodoListId")
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedBy");
+
+                    b.HasIndex("EventTypeId");
+
+                    b.HasIndex("StartsAt", "EndsAt");
+
+                    b.ToTable("Events", "Sheepfold", t =>
+                        {
+                            t.HasCheckConstraint("CK_Events_Period", "\"EndsAt\" >= \"StartsAt\"");
+                        });
+                });
+
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.EventAttachment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("ObjectKey")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<long>("SizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EventId");
+
+                    b.HasIndex("ObjectKey")
+                        .IsUnique();
+
+                    b.ToTable("EventAttachments", "Sheepfold");
+                });
+
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.EventComment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ParentCommentId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("UpdatedBy")
@@ -72,12 +528,444 @@ namespace HobbitCoder.TMTBucaramanga.Sheepfold.Persistence.PostgreSQL.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("TodoListId");
+                    b.HasIndex("ParentCommentId");
 
-                    b.ToTable("TodoItems", "Sheepfold");
+                    b.HasIndex("EventId", "CreatedDate");
+
+                    b.ToTable("EventComments", "Sheepfold");
                 });
 
-            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.TodoList", b =>
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.EventCommentAttachment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CommentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<string>("ObjectKey")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<long>("SizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CommentId");
+
+                    b.HasIndex("ObjectKey")
+                        .IsUnique();
+
+                    b.ToTable("EventCommentAttachments", "Sheepfold");
+                });
+
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.EventGeneration", b =>
+                {
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("GenerationId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("EventId", "GenerationId");
+
+                    b.HasIndex("GenerationId");
+
+                    b.ToTable("EventGenerations", "Sheepfold");
+                });
+
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.EventGroup", b =>
+                {
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("GroupId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("EventId", "GroupId");
+
+                    b.HasIndex("GroupId");
+
+                    b.ToTable("EventGroups", "Sheepfold");
+                });
+
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.EventManager", b =>
+                {
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("EventId", "UserId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("EventManagers", "Sheepfold");
+                });
+
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.EventType", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("EventTypes", "Sheepfold");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("0199c2a0-0000-7000-8000-000000000201"),
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2026, 10, 8, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            Name = "Reunión general de los sábados"
+                        },
+                        new
+                        {
+                            Id = new Guid("0199c2a0-0000-7000-8000-000000000202"),
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2026, 10, 8, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            Name = "Estudio TMT"
+                        },
+                        new
+                        {
+                            Id = new Guid("0199c2a0-0000-7000-8000-000000000203"),
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2026, 10, 8, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            Name = "Reunión de planeación"
+                        },
+                        new
+                        {
+                            Id = new Guid("0199c2a0-0000-7000-8000-000000000204"),
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2026, 10, 8, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            Name = "Entrenamiento de servidores"
+                        },
+                        new
+                        {
+                            Id = new Guid("0199c2a0-0000-7000-8000-000000000205"),
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2026, 10, 8, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            Name = "Reunión de coordinadores"
+                        },
+                        new
+                        {
+                            Id = new Guid("0199c2a0-0000-7000-8000-000000000206"),
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2026, 10, 8, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            Name = "Reunión de servidores"
+                        },
+                        new
+                        {
+                            Id = new Guid("0199c2a0-0000-7000-8000-000000000207"),
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2026, 10, 8, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            Name = "Campamento"
+                        },
+                        new
+                        {
+                            Id = new Guid("0199c2a0-0000-7000-8000-000000000208"),
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2026, 10, 8, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            Name = "Salida"
+                        },
+                        new
+                        {
+                            Id = new Guid("0199c2a0-0000-7000-8000-000000000209"),
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2026, 10, 8, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            Name = "Actividad con venta de boletas"
+                        });
+                });
+
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.FollowUp", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Commitments")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.Property<Guid?>("GroupId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsConfidential")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Location")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<DateOnly?>("MeetingDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Observations")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.Property<DateOnly?>("ScheduledDate")
+                        .HasColumnType("date");
+
+                    b.Property<TimeOnly?>("ScheduledTime")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<Guid?>("SubjectAttendeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("SubjectUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("TopicId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedBy");
+
+                    b.HasIndex("GroupId");
+
+                    b.HasIndex("SubjectAttendeeId");
+
+                    b.HasIndex("SubjectUserId");
+
+                    b.HasIndex("TopicId");
+
+                    b.ToTable("FollowUps", "Sheepfold", t =>
+                        {
+                            t.HasCheckConstraint("CK_FollowUps_Done", "\"Status\" <> 'Done' OR (\"MeetingDate\" IS NOT NULL AND \"Location\" IS NOT NULL AND \"TopicId\" IS NOT NULL AND \"Description\" IS NOT NULL AND \"Commitments\" IS NOT NULL)");
+
+                            t.HasCheckConstraint("CK_FollowUps_ScheduledTime", "\"ScheduledTime\" IS NULL OR \"ScheduledDate\" IS NOT NULL");
+
+                            t.HasCheckConstraint("CK_FollowUps_Subject", "(\"SubjectAttendeeId\" IS NULL AND \"SubjectUserId\" IS NOT NULL) OR (\"SubjectAttendeeId\" IS NOT NULL AND \"SubjectUserId\" IS NULL)");
+                        });
+                });
+
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.FollowUpTopic", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("FollowUpTopics", "Sheepfold");
+                });
+
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.Generation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Profile")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Generations", "Sheepfold");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("0199c2a0-0000-7000-8000-000000000101"),
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2026, 10, 8, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            Name = "PULSO",
+                            Profile = "Pulso",
+                            SortOrder = 1
+                        },
+                        new
+                        {
+                            Id = new Guid("0199c2a0-0000-7000-8000-000000000102"),
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2026, 10, 8, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            Name = "ECO",
+                            Profile = "Eco",
+                            SortOrder = 2
+                        },
+                        new
+                        {
+                            Id = new Guid("0199c2a0-0000-7000-8000-000000000103"),
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2026, 10, 8, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            Name = "LEGADO 1-5",
+                            Profile = "Legado1To5",
+                            SortOrder = 3
+                        },
+                        new
+                        {
+                            Id = new Guid("0199c2a0-0000-7000-8000-000000000104"),
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2026, 10, 8, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            Name = "LEGADO 6-10",
+                            Profile = "Legado6To10",
+                            SortOrder = 4
+                        });
+                });
+
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.Group", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -98,16 +986,257 @@ namespace HobbitCoder.TMTBucaramanga.Sheepfold.Persistence.PostgreSQL.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
+                    b.Property<Guid>("GenerationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
-                    b.Property<int>("Status")
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Year")
                         .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GenerationId");
+
+                    b.HasIndex("IsActive");
+
+                    b.HasIndex("Year", "GenerationId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("Groups", "Sheepfold");
+                });
+
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.GroupAssignment", b =>
+                {
+                    b.Property<Guid>("GroupId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Responsibility")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.HasKey("GroupId", "UserId", "Responsibility");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("GroupAssignments", "Sheepfold");
+                });
+
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.GroupMembership", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AttendeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("EndedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("GroupId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("StartedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AttendeeId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_GroupMemberships_AttendeeId_Current")
+                        .HasFilter("\"EndedAt\" IS NULL");
+
+                    b.HasIndex("GroupId");
+
+                    b.HasIndex("AttendeeId", "StartedAt")
+                        .IsUnique();
+
+                    b.ToTable("GroupMemberships", "Sheepfold", t =>
+                        {
+                            t.HasCheckConstraint("CK_GroupMemberships_Period", "\"EndedAt\" IS NULL OR \"EndedAt\" >= \"StartedAt\"");
+                        });
+                });
+
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.Notification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("AttendeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("EventId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<Guid>("RecipientUserId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AttendeeId");
+
+                    b.HasIndex("EventId");
+
+                    b.HasIndex("RecipientUserId", "CreatedAt");
+
+                    b.ToTable("Notifications", "Sheepfold");
+                });
+
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.NotificationChannelSetting", b =>
+                {
+                    b.Property<string>("Channel")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("Channel");
+
+                    b.ToTable("NotificationChannelSettings", "Sheepfold");
+
+                    b.HasData(
+                        new
+                        {
+                            Channel = "InApp",
+                            IsEnabled = true
+                        },
+                        new
+                        {
+                            Channel = "WhatsApp",
+                            IsEnabled = false
+                        });
+                });
+
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.NotificationKindSetting", b =>
+                {
+                    b.Property<string>("Kind")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("Kind");
+
+                    b.ToTable("NotificationKindSettings", "Sheepfold");
+
+                    b.HasData(
+                        new
+                        {
+                            Kind = "UpcomingEvent",
+                            IsEnabled = true
+                        },
+                        new
+                        {
+                            Kind = "EventChanged",
+                            IsEnabled = true
+                        },
+                        new
+                        {
+                            Kind = "EventCancelled",
+                            IsEnabled = true
+                        },
+                        new
+                        {
+                            Kind = "Birthday",
+                            IsEnabled = true
+                        },
+                        new
+                        {
+                            Kind = "AttendeeAssigned",
+                            IsEnabled = true
+                        },
+                        new
+                        {
+                            Kind = "PendingFollowUp",
+                            IsEnabled = true
+                        },
+                        new
+                        {
+                            Kind = "EventResponsibility",
+                            IsEnabled = true
+                        },
+                        new
+                        {
+                            Kind = "DiscussionActivity",
+                            IsEnabled = true
+                        });
+                });
+
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.OperationalSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("FrequentLatenessThreshold")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("FrequentLatenessWindowDays")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("LowAttendanceThresholdPercent")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("LowAttendanceWindowDays")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("PendingFollowUpReminderDays")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("UpcomingBirthdaysDays")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("UpcomingEventNoticeHours")
+                        .HasColumnType("integer");
 
                     b.Property<string>("UpdatedBy")
                         .HasMaxLength(256)
@@ -118,23 +1247,328 @@ namespace HobbitCoder.TMTBucaramanga.Sheepfold.Persistence.PostgreSQL.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("TodoLists", "Sheepfold");
+                    b.ToTable("OperationalSettings", "Sheepfold");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0000-000000000001"),
+                            CreatedBy = "System",
+                            CreatedDate = new DateTime(2026, 10, 8, 0, 0, 0, 0, DateTimeKind.Utc)
+                        });
                 });
 
-            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.TodoItem", b =>
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.UserAttendance", b =>
                 {
-                    b.HasOne("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.TodoList", "TodoList")
-                        .WithMany("TodoItems")
-                        .HasForeignKey("TodoListId")
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Mark")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime?>("UpdatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("EventId", "UserId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserAttendances", "Sheepfold");
+                });
+
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.AttendeeAttendance", b =>
+                {
+                    b.HasOne("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.Attendee", "Attendee")
+                        .WithMany()
+                        .HasForeignKey("AttendeeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("TodoList");
+                    b.HasOne("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.Event", "Event")
+                        .WithMany()
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Attendee");
+
+                    b.Navigation("Event");
                 });
 
-            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.TodoList", b =>
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.AttendeeContact", b =>
                 {
-                    b.Navigation("TodoItems");
+                    b.HasOne("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.Attendee", "Attendee")
+                        .WithMany("Contacts")
+                        .HasForeignKey("AttendeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Attendee");
+                });
+
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.AttendeeCourse", b =>
+                {
+                    b.HasOne("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.Attendee", "Attendee")
+                        .WithMany("Courses")
+                        .HasForeignKey("AttendeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.Course", "Course")
+                        .WithMany()
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Attendee");
+
+                    b.Navigation("Course");
+                });
+
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.Event", b =>
+                {
+                    b.HasOne("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.EventType", "EventType")
+                        .WithMany()
+                        .HasForeignKey("EventTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("EventType");
+                });
+
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.EventAttachment", b =>
+                {
+                    b.HasOne("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.Event", "Event")
+                        .WithMany("Attachments")
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Event");
+                });
+
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.EventComment", b =>
+                {
+                    b.HasOne("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.Event", "Event")
+                        .WithMany("Comments")
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.EventComment", "ParentComment")
+                        .WithMany("Replies")
+                        .HasForeignKey("ParentCommentId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("Event");
+
+                    b.Navigation("ParentComment");
+                });
+
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.EventCommentAttachment", b =>
+                {
+                    b.HasOne("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.EventComment", "Comment")
+                        .WithMany("Attachments")
+                        .HasForeignKey("CommentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Comment");
+                });
+
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.EventGeneration", b =>
+                {
+                    b.HasOne("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.Event", "Event")
+                        .WithMany("Generations")
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.Generation", "Generation")
+                        .WithMany()
+                        .HasForeignKey("GenerationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Event");
+
+                    b.Navigation("Generation");
+                });
+
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.EventGroup", b =>
+                {
+                    b.HasOne("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.Event", "Event")
+                        .WithMany("Groups")
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.Group", "Group")
+                        .WithMany()
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Event");
+
+                    b.Navigation("Group");
+                });
+
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.EventManager", b =>
+                {
+                    b.HasOne("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.Event", "Event")
+                        .WithMany("Managers")
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Event");
+                });
+
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.FollowUp", b =>
+                {
+                    b.HasOne("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.Group", "Group")
+                        .WithMany()
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.Attendee", "SubjectAttendee")
+                        .WithMany()
+                        .HasForeignKey("SubjectAttendeeId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.FollowUpTopic", "Topic")
+                        .WithMany()
+                        .HasForeignKey("TopicId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Group");
+
+                    b.Navigation("SubjectAttendee");
+
+                    b.Navigation("Topic");
+                });
+
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.Group", b =>
+                {
+                    b.HasOne("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.Generation", "Generation")
+                        .WithMany()
+                        .HasForeignKey("GenerationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Generation");
+                });
+
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.GroupAssignment", b =>
+                {
+                    b.HasOne("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.Group", "Group")
+                        .WithMany("Assignments")
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Group");
+                });
+
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.GroupMembership", b =>
+                {
+                    b.HasOne("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.Attendee", "Attendee")
+                        .WithMany("Memberships")
+                        .HasForeignKey("AttendeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.Group", "Group")
+                        .WithMany("Memberships")
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Attendee");
+
+                    b.Navigation("Group");
+                });
+
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.Notification", b =>
+                {
+                    b.HasOne("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.Attendee", "Attendee")
+                        .WithMany()
+                        .HasForeignKey("AttendeeId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.Event", "Event")
+                        .WithMany()
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Attendee");
+
+                    b.Navigation("Event");
+                });
+
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.UserAttendance", b =>
+                {
+                    b.HasOne("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.Event", "Event")
+                        .WithMany()
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Event");
+                });
+
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.Attendee", b =>
+                {
+                    b.Navigation("Contacts");
+
+                    b.Navigation("Courses");
+
+                    b.Navigation("Memberships");
+                });
+
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.Event", b =>
+                {
+                    b.Navigation("Attachments");
+
+                    b.Navigation("Comments");
+
+                    b.Navigation("Generations");
+
+                    b.Navigation("Groups");
+
+                    b.Navigation("Managers");
+                });
+
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.EventComment", b =>
+                {
+                    b.Navigation("Attachments");
+
+                    b.Navigation("Replies");
+                });
+
+            modelBuilder.Entity("HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.Group", b =>
+                {
+                    b.Navigation("Assignments");
+
+                    b.Navigation("Memberships");
                 });
 #pragma warning restore 612, 618
         }

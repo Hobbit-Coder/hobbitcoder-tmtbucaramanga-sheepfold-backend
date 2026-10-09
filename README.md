@@ -1,5 +1,10 @@
 # HobbitCoder.TMTBucaramanga.Sheepfold
 
+API ministerial de TMT (.NET 10): grupos y generaciones, asistentes, eventos, asistencia, discusión y archivos,
+seguimientos pastorales, avisos, reportes, auditoría, registros retirados y configuración. Las cuentas y las
+contraseñas viven en **HobbitCoder.TMTBucaramanga.Identity**; aquí solo se guarda el `sub` de cada usuario y su
+alcance ministerial. El modelo de datos está en `docs/requerimiento/modelo-de-datos.md`.
+
 ## Configuración local
 
 Los secretos no van en el repositorio. En desarrollo se guardan con `dotnet user-secrets` en la WebAPI:
@@ -9,7 +14,8 @@ $project = 'HobbitCoder.TMTBucaramanga.Sheepfold.WebAPI'
 dotnet user-secrets set 'ConnectionStrings:Default' 'Server=localhost;Port=5432;Database=TmtBucaramangaSheepfold;User Id=<usuario>;Password=<clave>' --project $project
 ```
 
-En los demás ambientes se usan variables de entorno: `ConnectionStrings__Default` y `JwtSettings__Authority`.
+En los demás ambientes se usan variables de entorno (`ConnectionStrings__Default`, `IdentityDirectory__ClientSecret`,
+`Storage__*`, `Messaging__*`); la lista completa está en `docs/requerimiento/despliegue-dokploy.md`.
 
 ### Junto con Identity y los frontends
 
@@ -19,7 +25,7 @@ Cada proyecto tiene sus propios puertos, user-secrets y base de datos, así que 
 | Proyecto | URL de desarrollo | Base de datos |
 | --- | --- | --- |
 | HobbitCoder.TMTBucaramanga.Identity | `https://localhost:7101` (perfil `https`) | `TmtBucaramangaIdentity` |
-| hobbitcoder-tmtbucaramanga-identity (frontend) | `http://localhost:4300` (inicio de sesión y registro) | — |
+| hobbitcoder-tmtbucaramanga-identity (frontend) | `http://localhost:4300` (ingreso, primer ingreso, usuarios) | — |
 | HobbitCoder.TMTBucaramanga.Sheepfold | `https://localhost:7291` / `http://localhost:5280` | `TmtBucaramangaSheepfold` |
 | hobbitcoder-tmtbucaramanga-sheepfold (frontend) | `http://localhost:4200` (`ng serve`, reenvía `/api` a Sheepfold) | — |
 
@@ -40,18 +46,22 @@ esta API (código de autorización con PKCE); su README describe el flujo comple
 | `JwtSettings:Authority` | URL base pública de HobbitCoder.TMTBucaramanga.Identity, idéntica a su `Jwt:Issuer` (sin barra final). También es el emisor (`iss`) esperado. En desarrollo, `https://localhost:7101`; fuera de desarrollo debe ser `https`. La API no arranca sin ella. |
 | `JwtSettings:Audience` | En `appsettings.json`: `HobbitCoder.TMTBucaramanga.Sheepfold`. Debe estar en `Jwt:Audiences` de Identity. |
 | `CorsSettings:*` | Política CORS por ambiente, en los `appsettings`. Ver [CORS](#cors). |
+| `IdentityDirectory:*` | Directorio de cuentas de Identity (nombres, roles, estado) con credenciales de cliente de servicio: `BaseUrl`, `ClientId` (`sheepfold-api`), `ClientSecret` (secreto, igual a `Jwt:ServiceClients` de Identity) y `CacheSeconds`. |
+| `Storage:*` | Almacenamiento S3 compatible (Contabo) para adjuntos. Sin configurar, los archivos responden 503 y el resto funciona. Ver `docs/requerimiento/almacenamiento-s3.md`. |
+| `Messaging:*` | Pasarela de WhatsApp para los avisos definidos (`GatewayUrl`, `ApiKey`, `TimeoutSeconds`). Opcional: sin ella solo hay avisos internos. |
+| `Notifications:ScheduleIntervalMinutes` | Cada cuánto se generan los avisos programados (60 min). |
 
 ### CORS
 
-En producción el frontend vive en **el mismo dominio** que esta API (`https://sheepfold.tmtbucaramanga.com`): sus
-llamadas son del mismo origen y el navegador no aplica CORS, así que no se permite ningún otro origen. En desarrollo
-el frontend corre en `http://localhost:4200`, que sí es otro origen. Cada ambiente declara su política en su
-`appsettings`:
+En producción el frontend de Sheepfold vive en **el mismo dominio** que esta API (`https://sheepfold.tmtbucaramanga.com`):
+sus llamadas son del mismo origen y el navegador no aplica CORS. El único origen externo es el frontend de Identity,
+cuyo editor de usuarios lee `GET /api/users/{userId}/responsibilities`. En desarrollo ambos frontends corren en otros
+puertos. Cada ambiente declara su política en su `appsettings`:
 
 | Ambiente | `AllowedOrigins` |
 | --- | --- |
-| Development | `http://localhost:4200` |
-| Production | ninguno (mismo origen) |
+| Development | `http://localhost:4200`, `http://localhost:4300` |
+| Production | `https://identity.tmtbucaramanga.com` |
 | Base (cualquier otro) | ninguno |
 
 En todos: métodos `GET`, `POST`, `PUT`, `PATCH`, `DELETE`; cabeceras `Authorization` y `Content-Type`; se exponen
@@ -68,10 +78,34 @@ Los JWT los emite **HobbitCoder.TMTBucaramanga.Identity**; esta API no genera to
 Solo los valida: descarga las claves públicas del JWKS que Identity publica en
 `{Authority}/.well-known/openid-configuration` y acepta únicamente tokens firmados con RS256.
 
-Todos los endpoints de `TodoList` y `TodoItem` exigen un token de Identity emitido para esta API
+Todos los endpoints bajo `/api` exigen un token de Identity emitido para esta API
 (`aud` = `HobbitCoder.TMTBucaramanga.Sheepfold`); sin él responden **401**. Un token para otra API, de otro emisor
-o firmado con otro algoritmo también recibe 401. `/health` es público. El usuario de auditoría (`CreatedBy`,
-`UpdatedBy`, `CompletedBy`) es el claim `sub` del token.
+o firmado con otro algoritmo también recibe 401. `/health` es público. El usuario de auditoría es el claim `sub`.
+
+Además del token, cada operación pasa por `MinistryAccess` (`Application/Common/Security/`): el rol y la
+responsabilidad vigente (director, coordinador de generación, líder o aprendiz de grupo) definen qué se puede ver y
+hacer (**403**/**404** fuera del alcance). El administrador solo gestiona catálogos y configuración: no tiene acceso a
+información ministerial ni pastoral. El contenido de los seguimientos solo lo reciben quienes la regla de
+confidencialidad permite, y cada lectura queda auditada.
+
+## Endpoints
+
+| Recurso | Rutas principales |
+| --- | --- |
+| Contexto | `GET /api/me/context` (rol, alcance y capacidades para la interfaz) |
+| Calendario | `GET /api/calendar` (eventos, seguimientos y fechas visibles en un rango) |
+| Eventos | `GET/POST /api/events`, `GET /api/events/options`, `GET/PUT/DELETE /api/events/{id}`, `POST /api/events/{id}/status` |
+| Asistencia | `GET/PUT /api/events/{id}/attendance` (dos marcas excluyentes; población según el grupo vigente al inicio del evento) |
+| Discusión y archivos | `GET/POST /api/events/{id}/comments`, `POST /api/events/{id}/attachments`, `GET/DELETE /api/events/{id}/attachments/{attachmentId}`, `GET .../comments/{commentId}/attachments/{attachmentId}` |
+| Asistentes | `GET/POST /api/attendees`, `GET/PUT/DELETE /api/attendees/{id}`, `history`, `activity`, `transfer`, `contacts`, `courses` |
+| Grupos | `GET/POST /api/groups`, `GET/PUT/DELETE /api/groups/{id}`, `history`, `PUT /api/groups/{id}/team`, `GET /api/groups/team-candidates`, `GET /api/groups/renewal`, `POST /api/groups/renewal/assignments` |
+| Seguimientos | `GET/POST /api/follow-ups`, `GET /api/follow-ups/subjects`, `GET/DELETE /api/follow-ups/{id}`, `PUT .../schedule`, `POST .../complete`, `PUT .../content` |
+| Avisos | `GET /api/notifications` |
+| Reportes | `GET /api/reports/{family}` |
+| Auditoría | `GET /api/audit`, `GET /api/audit/{id}` |
+| Retirados | `GET /api/retired`, `GET /api/retired/{type}/{id}/impact`, `POST /api/retired/{type}/{id}/restore`, `DELETE /api/retired/{type}/{id}` |
+| Catálogos y configuración | `GET /api/catalogs`, `POST /api/catalogs/{kind}`, `PUT /api/catalogs/{kind}/{id}`, `GET/PUT /api/settings/indicators`, `GET/PUT /api/settings/notifications` |
+| Responsabilidades | `GET /api/users/{userId}/responsibilities` (para el editor de usuarios de Identity) |
 
 ## Producción (Docker + Dokploy)
 
@@ -92,9 +126,12 @@ Traefik de Dokploy con Let's Encrypt; la imagen respeta sus encabezados `X-Forwa
 | Variable | Valor |
 | --- | --- |
 | `ConnectionStrings__Default` | Cadena de conexión al PostgreSQL de producción (base `TmtBucaramangaSheepfold`). |
+| `IdentityDirectory__ClientSecret` | Secreto del cliente de servicio `sheepfold-api` (el mismo de `Jwt__ServiceClients__0__Secret` en Identity). |
+| `Storage__ServiceUrl`, `Storage__Region`, `Storage__Bucket`, `Storage__AccessKey`, `Storage__SecretKey` | Contabo Object Storage. Sin ellos, los archivos responden 503. |
+| `Messaging__GatewayUrl`, `Messaging__ApiKey` | Pasarela de WhatsApp para avisos (opcional). |
 
-`JwtSettings:Authority` ya viene en `appsettings.Production.json` (`https://identity.tmtbucaramanga.com`). Esta API no
-tiene claves ni secretos de JWT.
+`JwtSettings:Authority`, `IdentityDirectory:BaseUrl` y CORS ya vienen en `appsettings.Production.json`. Esta API no
+tiene claves para firmar JWT.
 
 - **Identity primero.** Sheepfold descarga `https://identity.tmtbucaramanga.com/.well-known/openid-configuration` y
   el JWKS desde el contenedor, por HTTPS. Identity debe estar desplegado y el servidor debe poder resolver y llegar a
@@ -113,8 +150,10 @@ dotnet ef migrations script --idempotent --output sheepfold.sql --project Hobbit
 dotnet run --project HobbitCoder.TMTBucaramanga.Sheepfold.IntegrationTests
 ```
 
-Requieren **Docker** (PostgreSQL con Testcontainers). Verifican que cada endpoint exige token y que se rechazan los
-tokens de otra audiencia, de otro emisor o firmados con HS256.
+Requieren **Docker** (PostgreSQL con Testcontainers). Cubren autenticación (token obligatorio, audiencia, emisor y
+algoritmo), CORS y las reglas de negocio por módulo: `OrganizationTests` (grupos, traslados, renovación, asistentes,
+contactos, cursos), `EventTests` (eventos, público, asistencia), `FollowUpTests` (confidencialidad) y
+`OversightTests` (avisos, reportes, auditoría, retirados, configuración y archivos con un almacenamiento en memoria).
 
 ## Migraciones
 
@@ -127,3 +166,6 @@ dotnet ef database update --project HobbitCoder.TMTBucaramanga.Sheepfold.Persist
 ```
 
 Un cambio de modelo requiere una migración para cada proveedor.
+
+> **Atención:** `MinistryMvp` reemplaza el esquema de ejemplo y **elimina las tablas `TodoLists` y `TodoItems`**.
+> Antes de aplicarla en un ambiente con datos, respalda la base (ver `docs/requerimiento/despliegue-dokploy.md`).

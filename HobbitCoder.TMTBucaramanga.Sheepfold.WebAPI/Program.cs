@@ -2,7 +2,9 @@ using HobbitCoder.TMTBucaramanga.Sheepfold.Application;
 using HobbitCoder.TMTBucaramanga.Sheepfold.WebAPI;
 using HobbitCoder.TMTBucaramanga.Sheepfold.WebAPI.Handlers;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using HobbitCoder.TMTBucaramanga.Sheepfold.WebAPI.Services;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,7 +20,10 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<ErrorExceptionHandler>();
 
-builder.Services.AddControllers();
+// Los enums viajan como texto ("Published", "Attended"): el contrato se lee sin tablas de códigos.
+builder.Services.AddControllers()
+    .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+builder.Services.AddHostedService<ScheduledNotificationsService>();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 

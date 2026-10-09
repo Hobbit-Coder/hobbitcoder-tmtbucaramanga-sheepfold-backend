@@ -33,6 +33,8 @@ public class ErrorExceptionHandler : IExceptionHandler
         { typeof(NotFoundException), HandleNotFoundExceptionAsync },
         { typeof(ValidationException), HandleValidationExceptionAsync },
         { typeof(ConflictException), HandleConflictExceptionAsync },
+        { typeof(ForbiddenAccessException), HandleForbiddenAccessExceptionAsync },
+        { typeof(ExternalServiceException), HandleExternalServiceExceptionAsync },
     };
 
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
@@ -88,6 +90,48 @@ public class ErrorExceptionHandler : IExceptionHandler
             Type = "https://tools.ietf.org/html/rfc7231#section-6.5.4",
             Title = "The specified resource was not found.",
             Status = StatusCodes.Status404NotFound,
+            Extensions = { ["traceId"] = httpContext.TraceIdentifier }
+        }, httpContext.RequestAborted);
+    }
+
+    /// <summary>Sin permiso: 403 con un mensaje genérico, sin datos del recurso.</summary>
+    private async Task HandleForbiddenAccessExceptionAsync(HttpContext httpContext, Exception ex)
+    {
+        _logger.LogWarning(ex,
+            "Forbidden. TraceId: {TraceId}, Path: {Path}",
+            httpContext.TraceIdentifier,
+            httpContext.Request.Path);
+
+        httpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
+
+        await httpContext.Response.WriteAsJsonAsync(new ProblemDetails
+        {
+            Instance = httpContext.Request.Path,
+            Detail = ex.Message,
+            Status = StatusCodes.Status403Forbidden,
+            Title = "Forbidden",
+            Type = "https://tools.ietf.org/html/rfc7231#section-6.5.3",
+            Extensions = { ["traceId"] = httpContext.TraceIdentifier }
+        }, httpContext.RequestAborted);
+    }
+
+    /// <summary>Un servicio externo (Identity, almacenamiento, mensajería) no está disponible: 503 sin detalle técnico.</summary>
+    private async Task HandleExternalServiceExceptionAsync(HttpContext httpContext, Exception ex)
+    {
+        _logger.LogError(ex,
+            "External service unavailable. TraceId: {TraceId}, Path: {Path}",
+            httpContext.TraceIdentifier,
+            httpContext.Request.Path);
+
+        httpContext.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+
+        await httpContext.Response.WriteAsJsonAsync(new ProblemDetails
+        {
+            Instance = httpContext.Request.Path,
+            Detail = ex.Message,
+            Status = StatusCodes.Status503ServiceUnavailable,
+            Title = "Service Unavailable",
+            Type = "https://tools.ietf.org/html/rfc7231#section-6.6.4",
             Extensions = { ["traceId"] = httpContext.TraceIdentifier }
         }, httpContext.RequestAborted);
     }

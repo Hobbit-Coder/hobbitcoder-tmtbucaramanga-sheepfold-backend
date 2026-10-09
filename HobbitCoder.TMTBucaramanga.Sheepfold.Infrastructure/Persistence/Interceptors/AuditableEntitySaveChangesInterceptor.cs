@@ -52,7 +52,7 @@ public class AuditableEntitySaveChangesInterceptor : SaveChangesInterceptor
                     entry.Entity.UpdatedDate = now;
                     break;
 
-                case EntityState.Deleted when entry.Entity is ISoftDeleteableEntity softDeleteableEntity:
+                case EntityState.Deleted when entry.Entity is ISoftDeleteableEntity { IsDeleted: false } softDeleteableEntity:
                     entry.State = EntityState.Modified;
                     softDeleteableEntity.IsDeleted = true;
                     softDeleteableEntity.DeletedAt = now;
