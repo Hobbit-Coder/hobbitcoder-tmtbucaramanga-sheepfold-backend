@@ -72,8 +72,15 @@ public static class Configuration
             builder.Services.AddSingleton<IObjectStorage, UnavailableObjectStorage>();
         }
 
-        builder.Services.AddOptions<MessagingSettings>().Bind(configuration.GetSection(MessagingSettings.SectionName));
-        builder.Services.AddHttpClient(WhatsAppDispatchService.HttpClientName, client => client.Timeout = TimeSpan.FromSeconds(10));
+        builder.Services.AddOptions<MessagingSettings>()
+            .Bind(configuration.GetSection(MessagingSettings.SectionName))
+            .Validate(settings => Uri.TryCreate(settings.BaseUrl, UriKind.Absolute, out var uri) && uri.Scheme == Uri.UriSchemeHttps,
+                $"{MessagingSettings.SectionName}:BaseUrl debe ser una URL absoluta https.")
+            .Validate(settings => settings.TimeoutSeconds > 0, $"{MessagingSettings.SectionName}:TimeoutSeconds debe ser mayor que cero.")
+            .ValidateOnStart();
+        var messaging = configuration.GetSection(MessagingSettings.SectionName).Get<MessagingSettings>() ?? new MessagingSettings();
+        builder.Services.AddHttpClient(WhatsAppCloudClient.HttpClientName, client => client.Timeout = TimeSpan.FromSeconds(messaging.TimeoutSeconds));
+        builder.Services.AddSingleton<WhatsAppCloudClient>();
         builder.Services.AddSingleton<WhatsAppNotificationQueue>();
         builder.Services.AddSingleton<IWhatsAppNotificationSender>(serviceProvider => serviceProvider.GetRequiredService<WhatsAppNotificationQueue>());
         builder.Services.AddHostedService<WhatsAppDispatchService>();
