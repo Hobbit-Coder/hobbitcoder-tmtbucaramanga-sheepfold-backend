@@ -74,15 +74,30 @@ public static class Configuration
 
         builder.Services.AddOptions<MessagingSettings>()
             .Bind(configuration.GetSection(MessagingSettings.SectionName))
-            .Validate(settings => Uri.TryCreate(settings.BaseUrl, UriKind.Absolute, out var uri) && uri.Scheme == Uri.UriSchemeHttps,
-                $"{MessagingSettings.SectionName}:BaseUrl debe ser una URL absoluta https.")
+            .Validate(settings => Enum.IsDefined(settings.Provider), $"{MessagingSettings.SectionName}:Provider debe ser Evolution o Meta.")
+            .Validate(settings => string.IsNullOrWhiteSpace(settings.Evolution.Url) || IsAbsoluteUrl(settings.Evolution.Url, Uri.UriSchemeHttp, Uri.UriSchemeHttps),
+                $"{MessagingSettings.SectionName}:Evolution:Url debe ser una URL absoluta http o https.")
+            .Validate(settings => settings.Evolution.SecondsBetweenMessages >= 0, $"{MessagingSettings.SectionName}:Evolution:SecondsBetweenMessages no puede ser negativo.")
+            .Validate(settings => IsAbsoluteUrl(settings.Meta.BaseUrl, Uri.UriSchemeHttps), $"{MessagingSettings.SectionName}:Meta:BaseUrl debe ser una URL absoluta https.")
             .Validate(settings => settings.TimeoutSeconds > 0, $"{MessagingSettings.SectionName}:TimeoutSeconds debe ser mayor que cero.")
             .ValidateOnStart();
         var messaging = configuration.GetSection(MessagingSettings.SectionName).Get<MessagingSettings>() ?? new MessagingSettings();
-        builder.Services.AddHttpClient(WhatsAppCloudClient.HttpClientName, client => client.Timeout = TimeSpan.FromSeconds(messaging.TimeoutSeconds));
-        builder.Services.AddSingleton<WhatsAppCloudClient>();
+        builder.Services.AddHttpClient(EvolutionWhatsAppClient.HttpClientName, client => client.Timeout = TimeSpan.FromSeconds(messaging.TimeoutSeconds));
+
+        if (messaging.Provider == MessagingProvider.Meta)
+        {
+            builder.Services.AddSingleton<IWhatsAppClient, MetaWhatsAppClient>();
+        }
+        else
+        {
+            builder.Services.AddSingleton<IWhatsAppClient, EvolutionWhatsAppClient>();
+        }
+
         builder.Services.AddSingleton<WhatsAppNotificationQueue>();
         builder.Services.AddSingleton<IWhatsAppNotificationSender>(serviceProvider => serviceProvider.GetRequiredService<WhatsAppNotificationQueue>());
         builder.Services.AddHostedService<WhatsAppDispatchService>();
     }
+
+    private static bool IsAbsoluteUrl(string value, params string[] schemes) =>
+        Uri.TryCreate(value, UriKind.Absolute, out var uri) && schemes.Contains(uri.Scheme);
 }

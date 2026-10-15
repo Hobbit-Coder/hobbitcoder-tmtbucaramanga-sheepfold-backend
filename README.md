@@ -48,7 +48,7 @@ esta API (código de autorización con PKCE); su README describe el flujo comple
 | `CorsSettings:*` | Política CORS por ambiente, en los `appsettings`. Ver [CORS](#cors). |
 | `IdentityDirectory:*` | Directorio de cuentas de Identity (nombres, roles, estado) con credenciales de cliente de servicio: `BaseUrl`, `ClientId` (`sheepfold-api`), `ClientSecret` (secreto, igual a `Jwt:ServiceClients` de Identity) y `CacheSeconds`. |
 | `Storage:*` | Almacenamiento S3 compatible (Contabo) para adjuntos. Sin configurar, los archivos responden 503 y el resto funciona. Ver `docs/requerimiento/almacenamiento-s3.md`. |
-| `Messaging:*` | WhatsApp Cloud API para los avisos definidos (`PhoneNumberId`, `AccessToken`, `NotificationTemplate`, `TemplateLanguage`, `ApiVersion`). Opcional: sin credenciales solo hay avisos internos. Ver `docs/requerimiento/whatsapp-cloud-api.md`. |
+| `Messaging:*` | WhatsApp para los avisos definidos: `Provider` `Evolution` (por defecto; `Evolution:Url`, `Evolution:Instance`, `Evolution:ApiKey`, `Evolution:SecondsBetweenMessages`) o `Meta` (`Meta:*`). Opcional: sin credenciales solo hay avisos internos. Ver `docs/requerimiento/whatsapp-evolution.md`. |
 | `Notifications:ScheduleIntervalMinutes` | Cada cuánto se generan los avisos programados (60 min). |
 
 ### CORS
@@ -128,7 +128,7 @@ Traefik de Dokploy con Let's Encrypt; la imagen respeta sus encabezados `X-Forwa
 | `ConnectionStrings__Default` | Cadena de conexión al PostgreSQL de producción (base `TmtBucaramangaSheepfold`). |
 | `IdentityDirectory__ClientSecret` | Secreto del cliente de servicio `sheepfold-api` (el mismo de `Jwt__ServiceClients__0__Secret` en Identity). |
 | `Storage__ServiceUrl`, `Storage__Region`, `Storage__Bucket`, `Storage__AccessKey`, `Storage__SecretKey` | Contabo Object Storage. Sin ellos, los archivos responden 503. |
-| `Messaging__PhoneNumberId`, `Messaging__AccessToken` | WhatsApp Cloud API para avisos (opcional). |
+| `Messaging__Evolution__Url`, `Messaging__Evolution__Instance`, `Messaging__Evolution__ApiKey` | Evolution API para avisos por WhatsApp (opcional). |
 
 `JwtSettings:Authority`, `IdentityDirectory:BaseUrl` y CORS ya vienen en `appsettings.Production.json`. Esta API no
 tiene claves para firmar JWT.
