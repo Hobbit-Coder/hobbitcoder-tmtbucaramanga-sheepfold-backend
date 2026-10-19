@@ -9,7 +9,7 @@ public class DomainRulesTests
 {
     private static Generation Generation(GenerationProfile profile) => new() { Name = profile.ToString(), Profile = profile };
 
-    /// <summary>§9: PULSO exige tutor legal; las demás generaciones, contacto de emergencia.</summary>
+    /// <summary>PULSO exige tutor legal; las demás generaciones, contacto de emergencia.</summary>
     [Theory]
     [InlineData(GenerationProfile.Pulso, ContactKind.LegalGuardian)]
     [InlineData(GenerationProfile.Eco, ContactKind.EmergencyContact)]
@@ -21,7 +21,7 @@ public class DomainRulesTests
         Assert.Equal(expected, Generation(profile).RequiredContactKind);
     }
 
-    /// <summary>§8 y decisión P03: etapas que corresponden a cada generación.</summary>
+    /// <summary>Etapas que corresponden a cada generación.</summary>
     [Theory]
     [InlineData(GenerationProfile.Pulso, EducationalStage.Grade6, true)]
     [InlineData(GenerationProfile.Pulso, EducationalStage.Grade9, false)]

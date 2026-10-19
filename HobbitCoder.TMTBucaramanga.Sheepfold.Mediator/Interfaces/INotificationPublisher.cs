@@ -4,11 +4,13 @@ namespace HobbitCoder.TMTBucaramanga.Sheepfold.Mediator.Interfaces;
 /// Envuelve un handler de notificación ya resuelto para que el publisher pueda invocarlo
 /// sin conocer el tipo concreto de la notificación.
 /// </summary>
-/// <param name="HandlerInstance">La instancia del handler resuelta del contenedor.</param>
-/// <param name="HandlerCallback">Invoca el <c>Handle</c> del handler con la notificación.</param>
-public sealed record NotificationHandlerExecutor(
-    object HandlerInstance,
-    Func<INotification, CancellationToken, Task> HandlerCallback);
+public sealed class NotificationHandlerExecutor
+{
+    /// <summary>La instancia del handler resuelta del contenedor.</summary>
+    public required object HandlerInstance { get; set; }
+    /// <summary>Invoca el <c>Handle</c> del handler con la notificación.</summary>
+    public required Func<INotification, CancellationToken, Task> HandlerCallback { get; set; }
+}
 
 /// <summary>
 /// Estrategia que define cómo se ejecutan los handlers de una notificación

@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 namespace HobbitCoder.TMTBucaramanga.Sheepfold.Application.Notifications.Common;
 
 /// <summary>
-/// Genera las notificaciones de una novedad (§23) para destinatarios ya autorizados: avisos dentro de la
+/// Genera las notificaciones de una novedad para destinatarios ya autorizados: avisos dentro de la
 /// aplicación y, si el canal y la novedad están habilitados en la configuración, el envío automático por
 /// WhatsApp al teléfono registrado en Identity. Se llama después de guardar el cambio que la origina; un fallo
 /// al notificar se registra y no deshace ese cambio.
@@ -104,7 +104,7 @@ public sealed class NotificationDispatcher
             {
                 foreach (var user in recipients.Where(user => !string.IsNullOrWhiteSpace(user.PhoneNumber)))
                 {
-                    _whatsAppSender.Enqueue(new WhatsAppNotification(user.PhoneNumber!, title, message));
+                    _whatsAppSender.Enqueue(new WhatsAppNotification { PhoneNumber = user.PhoneNumber!, Title = title, Message = message });
                 }
             }
 

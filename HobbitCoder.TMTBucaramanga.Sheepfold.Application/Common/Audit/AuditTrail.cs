@@ -7,7 +7,7 @@ using System.Text.Json.Serialization;
 namespace HobbitCoder.TMTBucaramanga.Sheepfold.Application.Common.Audit;
 
 /// <summary>
-/// Registra hechos en la auditoría ministerial (§25). Se agrega al mismo <c>SaveChanges</c> del cambio, así que
+/// Registra hechos en la auditoría ministerial. Se agrega al mismo <c>SaveChanges</c> del cambio, así que
 /// ambos se guardan o fallan juntos. Los valores se guardan como una instantánea JSON del momento.
 /// </summary>
 public sealed class AuditTrail
@@ -42,44 +42,5 @@ public sealed class AuditTrail
             Before = before is null ? null : JsonSerializer.Serialize(before, SerializerOptions),
             After = after is null ? null : JsonSerializer.Serialize(after, SerializerOptions)
         });
-    }
-}
-
-/// <summary>Acciones de la auditoría ministerial. Son códigos estables; la interfaz los traduce.</summary>
-public static class AuditActions
-{
-    public const string Created = "Created";
-    public const string Updated = "Updated";
-    public const string Retired = "Retired";
-    public const string Restored = "Restored";
-    public const string PermanentlyDeleted = "PermanentlyDeleted";
-    public const string Activated = "Activated";
-    public const string Deactivated = "Deactivated";
-    public const string Transferred = "Transferred";
-    public const string TeamChanged = "TeamChanged";
-    public const string StatusChanged = "StatusChanged";
-    public const string AttendanceMarked = "AttendanceMarked";
-    public const string AttendanceCleared = "AttendanceCleared";
-    public const string Completed = "Completed";
-    public const string ConfidentialityChanged = "ConfidentialityChanged";
-    public const string SensitiveRead = "SensitiveRead";
-    public const string ContactAdded = "ContactAdded";
-    public const string ContactUpdated = "ContactUpdated";
-    public const string ContactRemoved = "ContactRemoved";
-    public const string CourseAdded = "CourseAdded";
-    public const string CourseUpdated = "CourseUpdated";
-    public const string CourseRemoved = "CourseRemoved";
-    public const string AttachmentAdded = "AttachmentAdded";
-    public const string AttachmentRemoved = "AttachmentRemoved";
-
-    /// <summary>Acción de un cambio que puede activar o desactivar el registro.</summary>
-    public static string ForActivation(bool wasActive, bool isActive, string activated = Activated, string deactivated = Deactivated)
-    {
-        if (wasActive == isActive)
-        {
-            return Updated;
-        }
-
-        return isActive ? activated : deactivated;
     }
 }

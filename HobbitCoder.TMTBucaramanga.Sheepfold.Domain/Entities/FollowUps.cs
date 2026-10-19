@@ -4,7 +4,7 @@ using HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Enums;
 namespace HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities;
 
 /// <summary>
-/// Seguimiento pastoral (§21). Se realiza a un asistente o a un usuario inferior en la jerarquía: exactamente
+/// Seguimiento pastoral. Se realiza a un asistente o a un usuario inferior en la jerarquía: exactamente
 /// uno de <see cref="SubjectAttendeeId"/> y <see cref="SubjectUserId"/>. Su autor es
 /// <see cref="AuditableEntity.CreatedBy"/>. Pendiente puede tener fecha (y hora) programada; completarlo
 /// actualiza este mismo registro con la información de la reunión.
@@ -18,7 +18,7 @@ public class FollowUp : SoftDeleteableEntity
 
     public FollowUpStatus Status { get; set; } = FollowUpStatus.Pending;
 
-    /// <summary>Fecha programada opcional de un pendiente (§21).</summary>
+    /// <summary>Fecha programada opcional de un pendiente.</summary>
     public DateOnly? ScheduledDate { get; set; }
 
     /// <summary>Hora programada, solo si hay fecha.</summary>
@@ -34,7 +34,7 @@ public class FollowUp : SoftDeleteableEntity
 
     /// <summary>
     /// Grupo del asistente en la fecha de la reunión, fijado al realizarse: el registro conserva el grupo de
-    /// ese momento aunque la persona cambie de grupo después (HU-06, HU-25). Nulo en pendientes y en
+    /// ese momento aunque la persona cambie de grupo después. Nulo en pendientes y en
     /// seguimientos a usuarios; entonces se usa el grupo actual.
     /// </summary>
     public Guid? GroupId { get; set; }

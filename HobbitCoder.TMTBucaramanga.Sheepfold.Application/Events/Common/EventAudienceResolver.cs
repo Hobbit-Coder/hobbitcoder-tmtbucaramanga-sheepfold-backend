@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 namespace HobbitCoder.TMTBucaramanga.Sheepfold.Application.Events.Common;
 
 /// <summary>
-/// Usuarios que consultan un evento según su público (§16, §17), para decidir a quién notificar sus novedades.
+/// Usuarios que consultan un evento según su público, para decidir a quién notificar sus novedades.
 /// Aplica las mismas reglas que <c>MinistryAccess.VisibleEventsAsync</c>, desde el lado del evento.
 /// </summary>
 public sealed class EventAudienceResolver

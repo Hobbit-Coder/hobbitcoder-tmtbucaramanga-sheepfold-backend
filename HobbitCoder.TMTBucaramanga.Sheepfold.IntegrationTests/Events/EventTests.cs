@@ -1,8 +1,7 @@
-using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Attendance;
-using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Calendar;
-using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Common.Models;
+using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Attendance.Common;
+using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Calendar.Common;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Events.Common;
-using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Notifications;
+using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Notifications.Common;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Enums;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Infrastructure.Persistence.Contexts;
 using HobbitCoder.TMTBucaramanga.Sheepfold.IntegrationTests.Infrastructure;
@@ -12,7 +11,7 @@ using System.Net;
 
 namespace HobbitCoder.TMTBucaramanga.Sheepfold.IntegrationTests.Events;
 
-/// <summary>Eventos, público, encargados, calendario y asistencia (HU-12 a HU-19).</summary>
+/// <summary>Eventos, público, encargados, calendario y asistencia.</summary>
 public class EventTests : IClassFixture<SheepfoldApiFixture>
 {
     private readonly SheepfoldApiFixture _fixture;
@@ -182,13 +181,15 @@ public class EventTests : IClassFixture<SheepfoldApiFixture>
         Assert.DoesNotContain(sheet.People, person => person.PersonId == notServer);
     }
 
-    /// <summary>P06: la población de un evento pasado usa el grupo de esa fecha; un traslado posterior no la cambia.</summary>
+    /// <summary>La población de un evento pasado usa el grupo de esa fecha; un traslado posterior no la cambia.</summary>
+    /// <remarks>
+    ///     El asistente ya pertenecía al grupo A antes del evento.
+    /// </remarks>
     [Fact]
     public async Task PastEventPopulation_UsesTheGroupAtTheEventDate()
     {
         var (groupA, groupB, leaderA, leaderB, _, attendeeA, _) = await TwoGroupsAsync();
 
-        // El asistente ya pertenecía al grupo A antes del evento.
         using (var scope = _fixture.Services.CreateScope())
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<SheepfoldContext>();

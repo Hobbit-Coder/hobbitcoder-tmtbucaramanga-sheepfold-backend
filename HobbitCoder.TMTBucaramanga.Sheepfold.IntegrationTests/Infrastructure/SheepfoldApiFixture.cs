@@ -62,10 +62,21 @@ public sealed class SheepfoldApiFixture : WebApplicationFactory<Program>, IAsync
     {
         var id = Guid.CreateVersion7();
         var name = firstName ?? role.ToString();
-        Directory.Add(new DirectoryUser(id, name, $"Prueba {id.ToString()[..6]}", gender, "+573000000000", new DateOnly(1995, 5, 20),
-            role, true, true, canRegisterAttendees));
+        Directory.Add(new DirectoryUser
+        {
+            Id = id,
+            FirstName = name,
+            LastName = $"Prueba {id.ToString()[..6]}",
+            Gender = gender,
+            PhoneNumber = "+573000000000",
+            BirthDate = new DateOnly(1995, 5, 20),
+            Role = role,
+            IsActive = true,
+            IsActivated = true,
+            CanRegisterAttendees = canRegisterAttendees
+        });
 
-        return new TestUser(id, CreateToken(id.ToString(), role: role, permissions: canRegisterAttendees ? ["RegisterAttendees"] : []));
+        return new TestUser { Id = id, Token = CreateToken(id.ToString(), role: role, permissions: canRegisterAttendees ? ["RegisterAttendees"] : []) };
     }
 
     /// <summary>Token como los que emite Identity, firmado con la clave de prueba.</summary>
@@ -132,4 +143,8 @@ public sealed class SheepfoldApiFixture : WebApplicationFactory<Program>, IAsync
     }
 }
 
-public sealed record TestUser(Guid Id, string Token);
+public sealed class TestUser
+{
+    public required Guid Id { get; set; }
+    public required string Token { get; set; }
+}

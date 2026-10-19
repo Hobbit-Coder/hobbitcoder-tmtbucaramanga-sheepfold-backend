@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 namespace HobbitCoder.TMTBucaramanga.Sheepfold.Application.Attendees.Common;
 
 /// <summary>
-/// Asignación y traslado de asistentes entre grupos (§13, HU-06). Siempre deja exactamente un grupo vigente:
+/// Asignación y traslado de asistentes entre grupos. Siempre deja exactamente un grupo vigente:
 /// cierra la pertenencia actual y abre la nueva en la misma transacción. Los registros anteriores conservan su
 /// contexto porque se interpretan con la pertenencia vigente en su fecha.
 /// </summary>
@@ -54,7 +54,7 @@ public sealed class MembershipService
 
     /// <summary>
     /// Traslada en una transacción: primero cierra la vigente (el índice único filtrado admite una sola) y luego
-    /// abre la nueva. Si algo falla, el asistente conserva su grupo anterior (HU-06, caso 4).
+    /// abre la nueva. Si algo falla, el asistente conserva su grupo anterior.
     /// </summary>
     /// <returns><c>false</c> si ya pertenece a ese grupo (no hay nada que trasladar).</returns>
     public async Task<bool> TransferAsync(Attendee attendee, Group destination, Func<CancellationToken, Task>? alsoInTransaction, CancellationToken cancellationToken)
@@ -98,7 +98,7 @@ public sealed class MembershipService
         return true;
     }
 
-    /// <summary>Avisa al equipo del grupo de destino que tiene un asistente nuevo (§23).</summary>
+    /// <summary>Avisa al equipo del grupo de destino que tiene un asistente nuevo.</summary>
     public async Task NotifyAssignedAsync(Attendee attendee, Group group, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(attendee);

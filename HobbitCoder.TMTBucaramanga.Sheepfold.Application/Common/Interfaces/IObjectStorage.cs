@@ -1,7 +1,7 @@
 namespace HobbitCoder.TMTBucaramanga.Sheepfold.Application.Common.Interfaces;
 
 /// <summary>
-/// Almacenamiento de objetos privado (S3 alojado en Contabo, RT-02) para los archivos que cargan los usuarios.
+/// Almacenamiento de objetos privado (S3 alojado en Contabo) para los archivos que cargan los usuarios.
 /// La base solo guarda metadatos; la autorización la decide el handler antes de llamar aquí.
 /// </summary>
 public interface IObjectStorage

@@ -20,6 +20,9 @@ public static partial class Configuration
     /// <c>MapInboundClaims</c> queda en su valor por defecto, así que los claims cortos del token se
     /// renombran a los de <c>ClaimTypes</c> (<c>sub</c> → <c>NameIdentifier</c>, <c>role</c> → <c>Role</c>).
     /// </para>
+    /// <para>
+    ///     Sin ValidIssuer: el emisor válido es el "issuer" del discovery de Authority.
+    /// </para>
     /// </remarks>
     public static IHostApplicationBuilder AddJwtSettings(this IHostApplicationBuilder builder)
     {
@@ -43,7 +46,6 @@ public static partial class Configuration
 
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    // Sin ValidIssuer: el emisor válido es el "issuer" del discovery de Authority.
                     ValidateIssuer = true,
                     ValidateAudience = true,
                     ValidAudience = jwtSettings.Value.Audience,

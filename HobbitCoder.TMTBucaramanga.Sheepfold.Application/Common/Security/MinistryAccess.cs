@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace HobbitCoder.TMTBucaramanga.Sheepfold.Application.Common.Security;
 
 /// <summary>
-/// Alcance ministerial del usuario autenticado (§4, §28.1): su rol (del token de Identity) y sus
+/// Alcance ministerial del usuario autenticado: su rol (del token de Identity) y sus
 /// responsabilidades en grupos (de Sheepfold). Todos los handlers lo usan para filtrar consultas y autorizar
 /// acciones, así que la regla vive en un solo lugar y nunca depende de lo que muestre la interfaz.
 /// </summary>
@@ -41,14 +41,14 @@ public sealed class MinistryAccess
     /// <summary>Director, coordinador, líder o aprendiz.</summary>
     public bool IsMinistry => Role is UserRole.Director or UserRole.Coordinator or UserRole.Leader or UserRole.Apprentice;
 
-    /// <summary>Puede registrar seguimientos (§21): director, coordinador o líder; nunca el aprendiz.</summary>
+    /// <summary>Puede registrar seguimientos: director, coordinador o líder; nunca el aprendiz.</summary>
     public bool CanFollowUp => Role is UserRole.Director or UserRole.Coordinator or UserRole.Leader;
 
-    /// <summary>§7: el director siempre; los demás solo con la designación. La designación no amplía la edición.</summary>
+    /// <summary>El director siempre; los demás solo con la designación. La designación no amplía la edición.</summary>
     public bool CanRegisterAttendees =>
         IsDirector || (IsMinistry && _currentUserService.HasPermission(RegisterAttendeesPermission));
 
-    /// <summary>El administrador y cualquier cuenta sin rol ministerial no acceden a información ministerial (§4.5).</summary>
+    /// <summary>El administrador y cualquier cuenta sin rol ministerial no acceden a información ministerial.</summary>
     public void EnsureMinistry()
     {
         if (!IsMinistry)
@@ -85,15 +85,21 @@ public sealed class MinistryAccess
         var userId = UserId;
         var groups = await _dbContext.GroupAssignments
             .Where(assignment => assignment.UserId == userId)
-            .Select(assignment => new ScopeGroup(
-                assignment.GroupId, assignment.Group.Year, assignment.Group.GenerationId, assignment.Group.IsActive, assignment.Responsibility))
+            .Select(assignment => new ScopeGroup
+            {
+                GroupId = assignment.GroupId,
+                Year = assignment.Group.Year,
+                GenerationId = assignment.Group.GenerationId,
+                IsActive = assignment.Group.IsActive,
+                Responsibility = assignment.Responsibility
+            })
             .ToListAsync(cancellationToken);
 
         _scope = new AccessScope(userId, Role!.Value, groups);
         return _scope;
     }
 
-    /// <summary>Asistentes que el usuario consulta y edita (§4): los de sus grupos, o todos para el director.</summary>
+    /// <summary>Asistentes que el usuario consulta y edita: los de sus grupos, o todos para el director.</summary>
     public async Task<IQueryable<Attendee>> AttendeesInScopeAsync(IQueryable<Attendee> attendees, CancellationToken cancellationToken)
     {
         var scope = await GetScopeAsync(cancellationToken);
@@ -117,7 +123,7 @@ public sealed class MinistryAccess
     }
 
     /// <summary>
-    /// Eventos que el usuario consulta (§16): todos para el director; para los demás, los que creó o tiene
+    /// Eventos que el usuario consulta: todos para el director; para los demás, los que creó o tiene
     /// encargados y los publicados (no borradores) cuyo público incluye su rol, sus generaciones o sus grupos.
     /// </summary>
     public async Task<IQueryable<Event>> VisibleEventsAsync(IQueryable<Event> events, CancellationToken cancellationToken)
@@ -159,7 +165,7 @@ public sealed class MinistryAccess
             ?? throw new NotFoundException(nameof(Event), eventId);
     }
 
-    /// <summary>§16 y §4.1: administra el evento su creador, sus encargados y el director.</summary>
+    /// <summary>Administra el evento su creador, sus encargados y el director.</summary>
     public bool CanAdministerEvent(Event @event)
     {
         ArgumentNullException.ThrowIfNull(@event);
@@ -170,7 +176,7 @@ public sealed class MinistryAccess
     }
 
     /// <summary>
-    /// Usuarios inferiores a quienes puede hacer seguimiento (§21): el director a coordinadores, líderes y
+    /// Usuarios inferiores a quienes puede hacer seguimiento: el director a coordinadores, líderes y
     /// aprendices; el coordinador a líderes y aprendices de sus grupos; el líder a los aprendices de su grupo.
     /// </summary>
     public async Task<HashSet<Guid>> InferiorUserIdsAsync(IReadOnlyDictionary<Guid, DirectoryUser> directory, CancellationToken cancellationToken)
@@ -209,10 +215,13 @@ public sealed class MinistryAccess
     }
 
     /// <summary>
-    /// Seguimientos cuyos datos generales puede consultar (§22): el director todos; los demás, los que escribió y
-    /// los de personas de su alcance. Nunca los propios: la persona atendida no conoce su seguimiento (§28.12).
+    /// Seguimientos cuyos datos generales puede consultar: el director todos; los demás, los que escribió y
+    /// los de personas de su alcance. Nunca los propios: la persona atendida no conoce su seguimiento.
     /// El aprendiz no tiene acceso pastoral.
     /// </summary>
+    /// <remarks>
+    ///     Un realizado sigue asociado al grupo de la reunión aunque la persona se haya trasladado.
+    /// </remarks>
     public async Task<IQueryable<FollowUp>> VisibleFollowUpsAsync(
         IQueryable<FollowUp> followUps, IReadOnlyDictionary<Guid, DirectoryUser> directory, CancellationToken cancellationToken)
     {
@@ -238,13 +247,12 @@ public sealed class MinistryAccess
             followUp.CreatedBy == author
             || (followUp.SubjectAttendeeId != null && followUp.SubjectAttendee!.Memberships.Any(
                 membership => membership.EndedAt == null && groupIds.Contains(membership.GroupId)))
-            // Un realizado sigue asociado al grupo de la reunión aunque la persona se haya trasladado (HU-07).
             || (followUp.GroupId != null && groupIds.Contains(followUp.GroupId.Value))
             || (followUp.SubjectUserId != null && inferiorUserIds.Contains(followUp.SubjectUserId.Value)));
     }
 
     /// <summary>
-    /// Contenido completo de un seguimiento (§22): su autor y el director. Si no es confidencial, también quien
+    /// Contenido completo de un seguimiento: su autor y el director. Si no es confidencial, también quien
     /// consulta sus datos generales por jerarquía.
     /// </summary>
     public bool CanReadFollowUpContent(FollowUp followUp)
@@ -261,51 +269,4 @@ public sealed class MinistryAccess
 
         return IsDirector || followUp.CreatedBy == UserId.ToString();
     }
-}
-
-public sealed record ScopeGroup(Guid GroupId, int Year, Guid GenerationId, bool IsActive, GroupResponsibility Responsibility);
-
-/// <summary>Responsabilidades del usuario en grupos, de todos los años (para la consulta histórica).</summary>
-public sealed class AccessScope
-{
-    public AccessScope(Guid userId, UserRole role, IReadOnlyList<ScopeGroup> groups)
-    {
-        UserId = userId;
-        Role = role;
-        Groups = groups;
-
-        CoordinatedGroupIds = Ids(GroupResponsibility.Coordinator);
-        LedGroupIds = Ids(GroupResponsibility.Leader);
-        ApprenticeGroupIds = Ids(GroupResponsibility.Apprentice);
-        ManagedGroupIds = [.. CoordinatedGroupIds, .. LedGroupIds];
-        OperationalGroupIds = [.. ManagedGroupIds, .. ApprenticeGroupIds];
-        ActiveManagedGroupIds = groups.Where(group => group.IsActive && ManagedGroupIds.Contains(group.GroupId)).Select(group => group.GroupId).ToHashSet();
-        ActiveOperationalGroupIds = groups.Where(group => group.IsActive).Select(group => group.GroupId).ToHashSet();
-        ActiveGenerationIds = groups.Where(group => group.IsActive).Select(group => group.GenerationId).ToHashSet();
-    }
-
-    public Guid UserId { get; }
-    public UserRole Role { get; }
-    public IReadOnlyList<ScopeGroup> Groups { get; }
-    public bool IsDirector => Role == UserRole.Director;
-
-    public HashSet<Guid> CoordinatedGroupIds { get; }
-    public HashSet<Guid> LedGroupIds { get; }
-    public HashSet<Guid> ApprenticeGroupIds { get; }
-
-    /// <summary>Grupos que coordina o lidera: seguimientos y administración de grupos.</summary>
-    public HashSet<Guid> ManagedGroupIds { get; }
-
-    /// <summary>Grupos donde además es aprendiz: consulta y edición de asistentes y asistencia.</summary>
-    public HashSet<Guid> OperationalGroupIds { get; }
-
-    public HashSet<Guid> ActiveManagedGroupIds { get; }
-    public HashSet<Guid> ActiveOperationalGroupIds { get; }
-    public HashSet<Guid> ActiveGenerationIds { get; }
-
-    /// <summary>Grupos activos para los que puede crear eventos (§16): los que coordina o lidera.</summary>
-    public HashSet<Guid> EventGroupIds => Role is UserRole.Coordinator or UserRole.Leader ? ActiveManagedGroupIds : [];
-
-    private HashSet<Guid> Ids(GroupResponsibility responsibility) =>
-        Groups.Where(group => group.Responsibility == responsibility).Select(group => group.GroupId).ToHashSet();
 }

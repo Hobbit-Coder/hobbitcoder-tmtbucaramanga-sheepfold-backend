@@ -1,4 +1,4 @@
-using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Context;
+using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Context.Common;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Enums;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Infrastructure.Persistence.Contexts;
 using HobbitCoder.TMTBucaramanga.Sheepfold.IntegrationTests.Infrastructure;
@@ -12,7 +12,7 @@ namespace HobbitCoder.TMTBucaramanga.Sheepfold.IntegrationTests.Authorization;
 
 /// <summary>
 /// Todos los endpoints exigen un token de Identity para Sheepfold; el administrador no accede a información
-/// ministerial ni pastoral (§4.5, HU-04 caso 4) aunque su token sea válido.
+/// ministerial ni pastoral aunque su token sea válido.
 /// </summary>
 public class EndpointAuthorizationTests : IClassFixture<SheepfoldApiFixture>
 {

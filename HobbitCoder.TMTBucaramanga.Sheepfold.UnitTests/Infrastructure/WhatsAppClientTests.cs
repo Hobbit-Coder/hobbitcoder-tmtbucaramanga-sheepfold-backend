@@ -22,7 +22,7 @@ public class EvolutionWhatsAppClientTests
             .On("/message/sendText/tmt", HttpStatusCode.Created, """{"key":{"id":"ABC"},"status":"PENDING"}""");
 
         var sent = await NewClient(handler).SendAsync(
-            new WhatsAppNotification("+57 300 123 4567", "Próximo evento: Retiro", "Retiro empieza el 12/10/2026 a las 08:00."),
+            new WhatsAppNotification { PhoneNumber = "+57 300 123 4567", Title = "Próximo evento: Retiro", Message = "Retiro empieza el 12/10/2026 a las 08:00." },
             TestContext.Current.CancellationToken);
 
         Assert.True(sent);
@@ -41,7 +41,7 @@ public class EvolutionWhatsAppClientTests
     {
         var handler = new RoutingHandler().On("/chat/whatsappNumbers/tmt", HttpStatusCode.OK, """[{"jid":"573001234567@s.whatsapp.net","exists":false,"number":"573001234567"}]""");
 
-        Assert.False(await NewClient(handler).SendAsync(new WhatsAppNotification("+573001234567", "Aviso", "Mensaje"), TestContext.Current.CancellationToken));
+        Assert.False(await NewClient(handler).SendAsync(new WhatsAppNotification { PhoneNumber = "+573001234567", Title = "Aviso", Message = "Mensaje" }, TestContext.Current.CancellationToken));
         Assert.Single(handler.Requests);
     }
 
@@ -52,7 +52,7 @@ public class EvolutionWhatsAppClientTests
             .On("/chat/whatsappNumbers/tmt", HttpStatusCode.OK, """[{"jid":"573001234567@s.whatsapp.net","exists":true,"number":"573001234567"}]""")
             .On("/message/sendText/tmt", HttpStatusCode.BadRequest, """{"status":400,"error":"Bad Request","response":{"message":["Connection Closed"]}}""");
 
-        Assert.False(await NewClient(handler).SendAsync(new WhatsAppNotification("+573001234567", "Aviso", "Mensaje"), TestContext.Current.CancellationToken));
+        Assert.False(await NewClient(handler).SendAsync(new WhatsAppNotification { PhoneNumber = "+573001234567", Title = "Aviso", Message = "Mensaje" }, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -82,7 +82,7 @@ public class MetaWhatsAppClientTests
         var handler = new RoutingHandler().On("/v24.0/1234567890/messages", HttpStatusCode.OK, """{"messages":[{"id":"wamid.1"}]}""");
 
         var sent = await NewClient(handler).SendAsync(
-            new WhatsAppNotification("+57 300 123 4567", "Próximo evento: Retiro", "Retiro empieza el 12/10/2026\na las 08:00 en   Sede."),
+            new WhatsAppNotification { PhoneNumber = "+57 300 123 4567", Title = "Próximo evento: Retiro", Message = "Retiro empieza el 12/10/2026\na las 08:00 en   Sede." },
             TestContext.Current.CancellationToken);
 
         Assert.True(sent);
@@ -100,7 +100,7 @@ public class MetaWhatsAppClientTests
     {
         var handler = new RoutingHandler().On("/v24.0/1234567890/messages", HttpStatusCode.BadRequest, """{"error":{"code":131026,"message":"Message undeliverable"}}""");
 
-        Assert.False(await NewClient(handler).SendAsync(new WhatsAppNotification("+573001234567", "Aviso", "Mensaje"), TestContext.Current.CancellationToken));
+        Assert.False(await NewClient(handler).SendAsync(new WhatsAppNotification { PhoneNumber = "+573001234567", Title = "Aviso", Message = "Mensaje" }, TestContext.Current.CancellationToken));
     }
 
     [Theory]

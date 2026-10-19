@@ -1,9 +1,9 @@
-using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Attendance;
-using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Audit;
+using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Attendance.Common;
+using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Audit.Common;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Events.Common;
-using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Reports;
-using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Retired;
-using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Settings;
+using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Reports.Common;
+using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Retired.Common;
+using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Settings.Common;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Enums;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Infrastructure.Persistence.Contexts;
 using HobbitCoder.TMTBucaramanga.Sheepfold.IntegrationTests.Infrastructure;
@@ -14,7 +14,7 @@ using System.Net.Http.Headers;
 
 namespace HobbitCoder.TMTBucaramanga.Sheepfold.IntegrationTests.Oversight;
 
-/// <summary>Archivos en S3 (RT-02), reportes, auditoría, conservación y configuración (HU-16, HU-25 a HU-30).</summary>
+/// <summary>Archivos en S3, reportes, auditoría, conservación y configuración.</summary>
 public class OversightTests : IClassFixture<SheepfoldApiFixture>
 {
     private readonly SheepfoldApiFixture _fixture;
@@ -41,6 +41,9 @@ public class OversightTests : IClassFixture<SheepfoldApiFixture>
         return await _scenario.Client.SendAsync(request, CancellationToken);
     }
 
+    /// <summary>
+    ///     Solo quien administra el evento adjunta archivos al evento.
+    /// </summary>
     [Fact]
     public async Task Attachment_IsStoredPrivately_AndOnlyDownloadableByEventViewers()
     {
@@ -64,7 +67,6 @@ public class OversightTests : IClassFixture<SheepfoldApiFixture>
         using var denied = await _scenario.SendAsync(HttpMethod.Get, $"/api/events/{eventId}/attachments/{file.Id}", outsider.Token);
         Assert.Equal(HttpStatusCode.NotFound, denied.StatusCode);
 
-        // Solo quien administra el evento adjunta archivos al evento.
         using var notAdmin = await UploadAsync(eventId, leader.Token);
         Assert.Equal(HttpStatusCode.Forbidden, notAdmin.StatusCode);
 

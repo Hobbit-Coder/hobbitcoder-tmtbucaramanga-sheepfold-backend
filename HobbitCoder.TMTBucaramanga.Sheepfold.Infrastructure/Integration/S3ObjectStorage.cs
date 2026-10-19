@@ -9,7 +9,7 @@ using Microsoft.Extensions.Options;
 namespace HobbitCoder.TMTBucaramanga.Sheepfold.Infrastructure.Integration;
 
 /// <summary>
-/// Almacenamiento S3 compatible (Contabo Object Storage, RT-02). Usa solo PutObject, GetObject y DeleteObject sobre
+/// Almacenamiento S3 compatible (Contabo Object Storage). Usa solo PutObject, GetObject y DeleteObject sobre
 /// un bucket privado: los objetos no tienen ACL pública ni se generan URLs; la API entrega el contenido después de
 /// autorizar. Las sumas de verificación se calculan solo cuando la operación las exige, porque no todos los
 /// servicios compatibles admiten las que el SDK agrega por defecto.
@@ -90,26 +90,4 @@ public sealed class S3ObjectStorage : IObjectStorage, IDisposable
     }
 
     public void Dispose() => _client.Dispose();
-}
-
-/// <summary>Sin credenciales de almacenamiento: las operaciones con archivos responden 503; no hay disco local de respaldo.</summary>
-public sealed class UnavailableObjectStorage : IObjectStorage
-{
-    private const string Message = "File storage is not configured.";
-
-    public UnavailableObjectStorage(IOptions<StorageSettings> options)
-    {
-        MaxUploadBytes = options.Value.MaxUploadBytes;
-    }
-
-    public long MaxUploadBytes { get; }
-
-    public Task PutAsync(string objectKey, Stream content, string contentType, CancellationToken cancellationToken) =>
-        throw new ExternalServiceException(Message);
-
-    public Task<Stream> GetAsync(string objectKey, CancellationToken cancellationToken) =>
-        throw new ExternalServiceException(Message);
-
-    public Task DeleteAsync(string objectKey, CancellationToken cancellationToken) =>
-        throw new ExternalServiceException(Message);
 }

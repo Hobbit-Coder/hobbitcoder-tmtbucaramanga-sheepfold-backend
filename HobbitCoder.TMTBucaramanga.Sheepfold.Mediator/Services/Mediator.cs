@@ -54,9 +54,11 @@ public sealed class Mediator : IMediator
         where TNotification : INotification
     {
         var handlerExecutors = _serviceProvider.GetServices<INotificationHandler<TNotification>>()
-            .Select(handler => new NotificationHandlerExecutor(
-                handler,
-                (notificationToHandle, token) => handler.Handle((TNotification)notificationToHandle, token)));
+            .Select(handler => new NotificationHandlerExecutor
+            {
+                HandlerInstance = handler,
+                HandlerCallback = (notificationToHandle, token) => handler.Handle((TNotification)notificationToHandle, token)
+            });
 
         return _notificationPublisher.Publish(handlerExecutors, notification, cancellationToken);
     }

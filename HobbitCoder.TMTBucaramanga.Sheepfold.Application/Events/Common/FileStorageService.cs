@@ -5,7 +5,7 @@ using ValidationException = HobbitCoder.TMTBucaramanga.Sheepfold.Application.Com
 namespace HobbitCoder.TMTBucaramanga.Sheepfold.Application.Events.Common;
 
 /// <summary>
-/// Carga de archivos al almacenamiento S3 privado (RT-02) con confirmación y compensación: primero se suben los
+/// Carga de archivos al almacenamiento S3 privado con confirmación y compensación: primero se suben los
 /// objetos, luego se guardan sus metadatos; si la base falla, se borran los objetos ya subidos para no dejar
 /// huérfanos. Nunca se guarda el contenido en la base ni se emiten URLs públicas.
 /// </summary>
@@ -45,7 +45,7 @@ public sealed class FileStorageService
                 var contentType = string.IsNullOrWhiteSpace(file.ContentType) ? DefaultContentType : file.ContentType;
 
                 await _storage.PutAsync(key, content, contentType, cancellationToken);
-                uploaded.Add(new StoredUpload(key, SafeFileName(file.FileName), contentType, file.SizeBytes));
+                uploaded.Add(new StoredUpload { ObjectKey = key, FileName = SafeFileName(file.FileName), ContentType = contentType, SizeBytes = file.SizeBytes });
             }
         }
         catch
@@ -83,5 +83,3 @@ public sealed class FileStorageService
         return name.Length > MaxFileNameLength ? name[^MaxFileNameLength..] : name;
     }
 }
-
-public sealed record StoredUpload(string ObjectKey, string FileName, string ContentType, long SizeBytes);

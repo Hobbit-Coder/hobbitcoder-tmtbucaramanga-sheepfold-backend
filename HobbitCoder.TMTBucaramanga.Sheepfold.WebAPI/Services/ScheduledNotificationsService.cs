@@ -1,11 +1,11 @@
-using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Notifications;
+using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Notifications.Commands;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Mediator.Interfaces;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Mediator.Models;
 
 namespace HobbitCoder.TMTBucaramanga.Sheepfold.WebAPI.Services;
 
 /// <summary>
-/// Genera periódicamente los avisos programados (§23): eventos próximos, cumpleaños y pendientes. El intervalo es
+/// Genera periódicamente los avisos programados: eventos próximos, cumpleaños y pendientes. El intervalo es
 /// técnico (<c>Notifications:ScheduleIntervalMinutes</c>, 60 por defecto); cuándo avisar lo definen los parámetros
 /// de la configuración. Un fallo se registra y se intenta en la siguiente vuelta.
 /// </summary>

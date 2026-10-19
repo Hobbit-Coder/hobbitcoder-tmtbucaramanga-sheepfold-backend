@@ -1,7 +1,7 @@
-using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Attendance;
-using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Calendar;
-using HobbitCoder.TMTBucaramanga.Sheepfold.Application.FollowUps;
-using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Reports;
+using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Attendance.Common;
+using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Calendar.Common;
+using HobbitCoder.TMTBucaramanga.Sheepfold.Application.FollowUps.Common;
+using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Reports.Common;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Enums;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Infrastructure.Persistence.Contexts;
 using HobbitCoder.TMTBucaramanga.Sheepfold.IntegrationTests.Infrastructure;
@@ -11,7 +11,7 @@ using System.Net;
 
 namespace HobbitCoder.TMTBucaramanga.Sheepfold.IntegrationTests.FollowUps;
 
-/// <summary>Seguimiento pastoral y confidencialidad (HU-20, HU-21, HU-22).</summary>
+/// <summary>Seguimiento pastoral y confidencialidad.</summary>
 public class FollowUpTests : IClassFixture<SheepfoldApiFixture>
 {
     private const string Secret = "Contenido pastoral sensible";
@@ -115,6 +115,9 @@ public class FollowUpTests : IClassFixture<SheepfoldApiFixture>
         Assert.Equal(HttpStatusCode.Forbidden, create.StatusCode);
     }
 
+    /// <summary>
+    ///     Otro responsable con alcance ve los datos generales, nunca el contenido (ni en el JSON).
+    /// </summary>
     [Fact]
     public async Task ConfidentialContent_IsOnlyForTheAuthorAndTheDirector_AndItsReadIsAudited()
     {
@@ -123,7 +126,6 @@ public class FollowUpTests : IClassFixture<SheepfoldApiFixture>
             new { subjectType = PersonType.Attendee, subjectId = attendee, completion = Content(confidential: true) });
         var id = await MinistryScenario.ReadAsync<Guid>(created);
 
-        // Otro responsable con alcance ve los datos generales, nunca el contenido (ni en el JSON).
         using var forCoordinator = await _scenario.SendAsync(HttpMethod.Get, $"/api/follow-ups/{id}", coordinator.Token);
         var raw = await forCoordinator.Content.ReadAsStringAsync(CancellationToken);
         var protectedView = await MinistryScenario.ReadAsync<FollowUpDetailResponse>(forCoordinator);

@@ -71,6 +71,12 @@ public class IdentityUserDirectory : IUserDirectory
         }
     }
 
+    /// <summary>
+    ///     Obtiene el token de servicio para consultar Identity.
+    /// </summary>
+    /// <remarks>
+    ///     Se renueva un minuto antes de vencer.
+    /// </remarks>
     private async Task<string> GetTokenAsync(HttpClient client, CancellationToken cancellationToken)
     {
         if (_cache.TryGetValue(TokenCacheKey, out string? token) && token is not null)
@@ -85,10 +91,13 @@ public class IdentityUserDirectory : IUserDirectory
         var body = await response.Content.ReadFromJsonAsync<ServiceToken>(JsonOptions, cancellationToken)
             ?? throw new JsonException("Empty service token response.");
 
-        // Se renueva un minuto antes de vencer.
         _cache.Set(TokenCacheKey, body.AccessToken, TimeSpan.FromSeconds(Math.Max(30, body.ExpiresIn - 60)));
         return body.AccessToken;
     }
 
-    private sealed record ServiceToken(string AccessToken, int ExpiresIn);
+    internal sealed class ServiceToken
+    {
+        public required string AccessToken { get; set; }
+        public required int ExpiresIn { get; set; }
+    }
 }

@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace HobbitCoder.TMTBucaramanga.Sheepfold.Application.Events.Common;
 
 /// <summary>
-/// Lo que el usuario puede elegir en un evento (§16, §17): el director cualquier público, generación o grupo
+/// Lo que el usuario puede elegir en un evento: el director cualquier público, generación o grupo
 /// activo; el coordinador y el líder, uno o varios de los grupos activos que coordinan o lideran. Los
 /// encargados se eligen entre las personas de ese mismo alcance.
 /// </summary>
@@ -32,36 +32,40 @@ public sealed class EventOptionsService
         if (scope.IsDirector)
         {
             var generations = await _dbContext.Generations.Where(item => item.IsActive).OrderBy(item => item.SortOrder)
-                .Select(item => new NamedRef(item.Id, item.Name)).ToListAsync(cancellationToken);
+                .Select(item => new NamedRef { Id = item.Id, Name = item.Name }).ToListAsync(cancellationToken);
 
-            return new AudienceOptionsResponse(
-                Enum.GetValues<EventAudience>(),
-                generations,
-                await GroupsAsync(_dbContext.Groups.Where(group => group.IsActive), cancellationToken),
-                directory.Values.Where(user => user.IsActive && user.IsMinistry).OrderBy(user => user.FullName)
-                    .Select(user => new PersonRef(user.Id, user.FullName, user.Role)).ToList());
+            return new AudienceOptionsResponse
+            {
+                Audiences = Enum.GetValues<EventAudience>(),
+                Generations = generations,
+                Groups = await GroupsAsync(_dbContext.Groups.Where(group => group.IsActive), cancellationToken),
+                Managers = directory.Values.Where(user => user.IsActive && user.IsMinistry).OrderBy(user => user.FullName)
+                    .Select(user => new PersonRef { Id = user.Id, FullName = user.FullName, Role = user.Role }).ToList()
+            };
         }
 
         var groupIds = scope.EventGroupIds;
 
         if (groupIds.Count == 0)
         {
-            return new AudienceOptionsResponse([], [], [], []);
+            return new AudienceOptionsResponse { Audiences = [], Generations = [], Groups = [], Managers = [] };
         }
 
         var managerIds = await _dbContext.GroupAssignments.Where(assignment => groupIds.Contains(assignment.GroupId))
             .Select(assignment => assignment.UserId).Distinct().ToListAsync(cancellationToken);
         managerIds.Add(scope.UserId);
 
-        return new AudienceOptionsResponse(
-            [EventAudience.Groups],
-            [],
-            await GroupsAsync(_dbContext.Groups.Where(group => groupIds.Contains(group.Id)), cancellationToken),
-            managerIds.Distinct().Select(directory.GetValueOrDefault).OfType<DirectoryUser>().Where(user => user.IsActive)
-                .OrderBy(user => user.FullName).Select(user => new PersonRef(user.Id, user.FullName, user.Role)).ToList());
+        return new AudienceOptionsResponse
+        {
+            Audiences = [EventAudience.Groups],
+            Generations = [],
+            Groups = await GroupsAsync(_dbContext.Groups.Where(group => groupIds.Contains(group.Id)), cancellationToken),
+            Managers = managerIds.Distinct().Select(directory.GetValueOrDefault).OfType<DirectoryUser>().Where(user => user.IsActive)
+                .OrderBy(user => user.FullName).Select(user => new PersonRef { Id = user.Id, FullName = user.FullName, Role = user.Role }).ToList()
+        };
     }
 
-    /// <summary>Puede crear eventos: el director, o un coordinador o líder con grupos activos (§16).</summary>
+    /// <summary>Puede crear eventos: el director, o un coordinador o líder con grupos activos.</summary>
     public async Task<bool> CanCreateAsync(CancellationToken cancellationToken)
     {
         var scope = await _access.GetScopeAsync(cancellationToken);
@@ -111,6 +115,6 @@ public sealed class EventOptionsService
 
     private static async Task<IReadOnlyList<AudienceGroupRef>> GroupsAsync(IQueryable<Group> groups, CancellationToken cancellationToken) =>
         await groups.OrderBy(group => group.Generation.SortOrder).ThenBy(group => group.Name)
-            .Select(group => new AudienceGroupRef(group.Id, group.Name, group.Year, group.GenerationId, group.Generation.Name))
+            .Select(group => new AudienceGroupRef { Id = group.Id, Name = group.Name, Year = group.Year, GenerationId = group.GenerationId, GenerationName = group.Generation.Name })
             .ToListAsync(cancellationToken);
 }

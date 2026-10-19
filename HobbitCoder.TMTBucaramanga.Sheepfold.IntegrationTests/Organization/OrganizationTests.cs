@@ -1,5 +1,5 @@
 using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Attendees.Common;
-using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Groups;
+using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Groups.Common;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Enums;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Infrastructure.Persistence.Contexts;
 using HobbitCoder.TMTBucaramanga.Sheepfold.IntegrationTests.Infrastructure;
@@ -10,7 +10,7 @@ using System.Net;
 
 namespace HobbitCoder.TMTBucaramanga.Sheepfold.IntegrationTests.Organization;
 
-/// <summary>Grupos, equipo, asistentes, contactos, cursos y traslados (HU-04 a HU-11).</summary>
+/// <summary>Grupos, equipo, asistentes, contactos, cursos y traslados.</summary>
 public class OrganizationTests : IClassFixture<SheepfoldApiFixture>
 {
     private readonly SheepfoldApiFixture _fixture;
@@ -82,6 +82,9 @@ public class OrganizationTests : IClassFixture<SheepfoldApiFixture>
         Assert.Empty(list.Items);
     }
 
+    /// <summary>
+    ///     Registró en un grupo que no administra: no por eso puede consultarlo ni editarlo.
+    /// </summary>
     [Fact]
     public async Task Registration_RequiresTheDesignation_WhichDoesNotWidenTheEditingScope()
     {
@@ -98,7 +101,6 @@ public class OrganizationTests : IClassFixture<SheepfoldApiFixture>
 
         var created = await _scenario.CreateAttendeeAsync(groupId, token: registrar.Token);
 
-        // Registró en un grupo que no administra: no por eso puede consultarlo ni editarlo.
         using var afterwards = await _scenario.SendAsync(HttpMethod.Get, $"/api/attendees/{created}", registrar.Token);
         Assert.Equal(HttpStatusCode.NotFound, afterwards.StatusCode);
     }

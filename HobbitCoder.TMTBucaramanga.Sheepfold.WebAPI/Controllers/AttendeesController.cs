@@ -1,85 +1,166 @@
-using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Attendees;
+using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Attendees.Commands;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Attendees.Common;
+using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Attendees.Queries;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Common.Models;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Mediator.Interfaces;
+using HobbitCoder.TMTBucaramanga.Sheepfold.Mediator.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HobbitCoder.TMTBucaramanga.Sheepfold.WebAPI.Controllers;
 
-[Route("api/attendees")]
-public class AttendeesController : SheepfoldControllerBase
+[ApiController]
+[Authorize]
+[Route("api/[controller]")]
+[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+[ProducesResponseType(StatusCodes.Status403Forbidden)]
+public class AttendeesController : ControllerBase
 {
-    public AttendeesController(IMediator mediator) : base(mediator)
+    private readonly IMediator _mediator;
+
+    public AttendeesController(IMediator mediator)
     {
+        _mediator = mediator;
     }
 
     [HttpGet]
-    public Task<PagedResult<AttendeeListItem>> GetAsync([FromQuery] GetAttendeesQuery query) => Send<GetAttendeesQuery, PagedResult<AttendeeListItem>>(query);
+    [ProducesResponseType<PagedResult<AttendeeListItem>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<PagedResult<AttendeeListItem>>> GetAsync([FromQuery] GetAttendeesQuery query, CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send<GetAttendeesQuery, PagedResult<AttendeeListItem>>(query, cancellationToken);
+        return Ok(result);
+    }
 
     [HttpGet("{id:guid}")]
-    public Task<AttendeeProfileResponse> GetByIdAsync(Guid id) => Send<GetAttendeeQuery, AttendeeProfileResponse>(new GetAttendeeQuery { Id = id });
+    [ProducesResponseType<AttendeeProfileResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<AttendeeProfileResponse>> GetByIdAsync([FromRoute] Guid id, CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send<GetAttendeeQuery, AttendeeProfileResponse>(new GetAttendeeQuery { Id = id }, cancellationToken);
+        return Ok(result);
+    }
 
     [HttpGet("{id:guid}/history")]
-    public Task<List<MembershipHistoryItem>> GetHistoryAsync(Guid id) =>
-        Send<GetAttendeeHistoryQuery, List<MembershipHistoryItem>>(new GetAttendeeHistoryQuery { Id = id });
+    [ProducesResponseType<List<MembershipHistoryItem>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<List<MembershipHistoryItem>>> GetHistoryAsync([FromRoute] Guid id, CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send<GetAttendeeHistoryQuery, List<MembershipHistoryItem>>(new GetAttendeeHistoryQuery { Id = id }, cancellationToken);
+        return Ok(result);
+    }
 
     [HttpGet("{id:guid}/activity")]
-    public Task<AttendeeActivityResponse> GetActivityAsync(Guid id) =>
-        Send<GetAttendeeActivityQuery, AttendeeActivityResponse>(new GetAttendeeActivityQuery { Id = id });
+    [ProducesResponseType<AttendeeActivityResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<AttendeeActivityResponse>> GetActivityAsync([FromRoute] Guid id, CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send<GetAttendeeActivityQuery, AttendeeActivityResponse>(new GetAttendeeActivityQuery { Id = id }, cancellationToken);
+        return Ok(result);
+    }
 
     [HttpPost]
     [ProducesResponseType<Guid>(StatusCodes.Status201Created)]
-    public async Task<ActionResult<Guid>> CreateAsync([FromBody] CreateAttendeeCommand command)
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<Guid>> CreateAsync([FromBody] CreateAttendeeCommand command, CancellationToken cancellationToken)
     {
-        var id = await Send<CreateAttendeeCommand, Guid>(command);
-        return Created($"/api/attendees/{id}", id);
+        var id = await _mediator.Send<CreateAttendeeCommand, Guid>(command, cancellationToken);
+        return CreatedAtAction("GetById", new { id }, id);
     }
 
     [HttpPut("{id:guid}")]
-    public Task<IActionResult> UpdateAsync(Guid id, [FromBody] UpdateAttendeeCommand command)
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> UpdateAsync([FromRoute] Guid id, [FromBody] UpdateAttendeeCommand command, CancellationToken cancellationToken)
     {
         command.Id = id;
-        return NoContentAfter(command);
+        await _mediator.Send<UpdateAttendeeCommand, Unit>(command, cancellationToken);
+        return NoContent();
     }
 
     [HttpPost("{id:guid}/transfer")]
-    public Task<IActionResult> TransferAsync(Guid id, [FromBody] TransferAttendeeCommand command)
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> TransferAsync([FromRoute] Guid id, [FromBody] TransferAttendeeCommand command, CancellationToken cancellationToken)
     {
         command.Id = id;
-        return NoContentAfter(command);
+        await _mediator.Send<TransferAttendeeCommand, Unit>(command, cancellationToken);
+        return NoContent();
     }
 
     [HttpDelete("{id:guid}")]
-    public Task<IActionResult> RetireAsync(Guid id) => NoContentAfter(new RetireAttendeeCommand { Id = id });
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> RetireAsync([FromRoute] Guid id, CancellationToken cancellationToken)
+    {
+        await _mediator.Send<RetireAttendeeCommand, Unit>(new RetireAttendeeCommand { Id = id }, cancellationToken);
+        return NoContent();
+    }
 
     [HttpPost("{id:guid}/contacts")]
-    public Task<Guid> AddContactAsync(Guid id, [FromBody] ContactData contact) =>
-        Send<AddContactCommand, Guid>(new AddContactCommand { AttendeeId = id, Contact = contact });
+    [ProducesResponseType<Guid>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<Guid>> AddContactAsync([FromRoute] Guid id, [FromBody] ContactData contact, CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send<AddContactCommand, Guid>(new AddContactCommand { AttendeeId = id, Contact = contact }, cancellationToken);
+        return Ok(result);
+    }
 
     [HttpPut("{id:guid}/contacts/{contactId:guid}")]
-    public Task<IActionResult> UpdateContactAsync(Guid id, Guid contactId, [FromBody] ContactData contact) =>
-        NoContentAfter(new UpdateContactCommand { AttendeeId = id, ContactId = contactId, Contact = contact });
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateContactAsync([FromRoute] Guid id, [FromRoute] Guid contactId, [FromBody] ContactData contact, CancellationToken cancellationToken)
+    {
+        await _mediator.Send<UpdateContactCommand, Unit>(new UpdateContactCommand { AttendeeId = id, ContactId = contactId, Contact = contact }, cancellationToken);
+        return NoContent();
+    }
 
     [HttpDelete("{id:guid}/contacts/{contactId:guid}")]
-    public Task<IActionResult> RemoveContactAsync(Guid id, Guid contactId) =>
-        NoContentAfter(new RemoveContactCommand { AttendeeId = id, ContactId = contactId });
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RemoveContactAsync([FromRoute] Guid id, [FromRoute] Guid contactId, CancellationToken cancellationToken)
+    {
+        await _mediator.Send<RemoveContactCommand, Unit>(new RemoveContactCommand { AttendeeId = id, ContactId = contactId }, cancellationToken);
+        return NoContent();
+    }
 
     [HttpPost("{id:guid}/courses")]
-    public Task<Guid> AddCourseAsync(Guid id, [FromBody] AddCourseCommand command)
+    [ProducesResponseType<Guid>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<Guid>> AddCourseAsync([FromRoute] Guid id, [FromBody] AddCourseCommand command, CancellationToken cancellationToken)
     {
         command.AttendeeId = id;
-        return Send<AddCourseCommand, Guid>(command);
+        var result = await _mediator.Send<AddCourseCommand, Guid>(command, cancellationToken);
+        return Ok(result);
     }
 
     [HttpPut("{id:guid}/courses/{attendeeCourseId:guid}")]
-    public Task<IActionResult> UpdateCourseAsync(Guid id, Guid attendeeCourseId, [FromBody] UpdateCourseCommand command)
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateCourseAsync([FromRoute] Guid id, [FromRoute] Guid attendeeCourseId, [FromBody] UpdateCourseCommand command, CancellationToken cancellationToken)
     {
         command.AttendeeId = id;
         command.AttendeeCourseId = attendeeCourseId;
-        return NoContentAfter(command);
+        await _mediator.Send<UpdateCourseCommand, Unit>(command, cancellationToken);
+        return NoContent();
     }
 
     [HttpDelete("{id:guid}/courses/{attendeeCourseId:guid}")]
-    public Task<IActionResult> RemoveCourseAsync(Guid id, Guid attendeeCourseId) =>
-        NoContentAfter(new RemoveCourseCommand { AttendeeId = id, AttendeeCourseId = attendeeCourseId });
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RemoveCourseAsync([FromRoute] Guid id, [FromRoute] Guid attendeeCourseId, CancellationToken cancellationToken)
+    {
+        await _mediator.Send<RemoveCourseCommand, Unit>(new RemoveCourseCommand { AttendeeId = id, AttendeeCourseId = attendeeCourseId }, cancellationToken);
+        return NoContent();
+    }
 }

@@ -31,6 +31,9 @@ public static class Configuration
     /// Integraciones externas: directorio de Identity, almacenamiento S3 (Contabo) y pasarela de WhatsApp. Sin
     /// almacenamiento configurado las operaciones con archivos responden 503: no se usa el disco del contenedor.
     /// </summary>
+    /// <remarks>
+    ///     La barra final hace que las rutas relativas ("api/...") se resuelvan bajo la URL base.
+    /// </remarks>
     private static void AddIntegrations(this IHostApplicationBuilder builder)
     {
         var configuration = builder.Configuration;
@@ -47,7 +50,6 @@ public static class Configuration
             var baseUrl = configuration[$"{IdentityDirectorySettings.SectionName}:BaseUrl"];
             if (!string.IsNullOrWhiteSpace(baseUrl))
             {
-                // La barra final hace que las rutas relativas ("api/...") se resuelvan bajo la URL base.
                 client.BaseAddress = new Uri(baseUrl.EndsWith('/') ? baseUrl : $"{baseUrl}/");
             }
 

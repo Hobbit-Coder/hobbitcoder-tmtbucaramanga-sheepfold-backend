@@ -1,5 +1,5 @@
 using FluentValidation;
-using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Attendance;
+using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Attendance.Common;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Attendees.Common;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Common.Audit;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Common.Behaviors;
@@ -17,6 +17,12 @@ namespace HobbitCoder.TMTBucaramanga.Sheepfold.Application;
 
 public static partial class Configuration
 {
+    /// <summary>
+    ///     Registra los servicios de la capa de aplicación.
+    /// </summary>
+    /// <remarks>
+    ///     Servicios por petición que comparten reglas entre módulos.
+    /// </remarks>
     public static IHostApplicationBuilder AddApplication(this IHostApplicationBuilder builder)
     {
         builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
@@ -28,7 +34,6 @@ public static partial class Configuration
 
         builder.Services.TryAddSingleton(TimeProvider.System);
 
-        // Servicios por petición que comparten reglas entre módulos.
         builder.Services.AddScoped<MinistryAccess>();
         builder.Services.AddScoped<AuditTrail>();
         builder.Services.AddScoped<NotificationDispatcher>();

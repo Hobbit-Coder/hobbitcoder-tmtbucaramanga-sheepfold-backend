@@ -69,7 +69,7 @@ public sealed class MinistryScenario
 
     /// <summary>
     /// Inicio por defecto de los eventos de prueba: un jueves de octubre del año siguiente, siempre futuro. Así la
-    /// población del evento (P06: grupo a la fecha de inicio) incluye a los asistentes recién registrados sin depender
+    /// población del evento (grupo a la fecha de inicio) incluye a los asistentes recién registrados sin depender
     /// de la hora en que corren las pruebas.
     /// </summary>
     public static readonly DateTimeOffset ReferenceEventStart = new(DateTime.UtcNow.Year + 1, 10, 8, 18, 0, 0, TimeSpan.FromHours(-5));
@@ -137,4 +137,11 @@ public sealed class MinistryScenario
 }
 
 /// <summary>Página de resultados tal como la serializa la API.</summary>
-public sealed record Page<T>(List<T> Items, int PageNumber, int PageSize, int TotalCount, int TotalPages);
+public sealed class Page<T>
+{
+    public required List<T> Items { get; set; }
+    public required int PageNumber { get; set; }
+    public required int PageSize { get; set; }
+    public required int TotalCount { get; set; }
+    public required int TotalPages { get; set; }
+}
