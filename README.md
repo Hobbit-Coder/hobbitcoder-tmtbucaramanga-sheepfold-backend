@@ -50,6 +50,7 @@ esta API (código de autorización con PKCE); su README describe el flujo comple
 | `Storage:*` | Almacenamiento S3 compatible (Contabo) para adjuntos. Sin configurar, los archivos responden 503 y el resto funciona. Ver `docs/requerimiento/almacenamiento-s3.md`. |
 | `Messaging:*` | WhatsApp para los avisos definidos: `Provider` `Evolution` (por defecto; `Evolution:Url`, `Evolution:Instance`, `Evolution:ApiKey`, `Evolution:SecondsBetweenMessages`) o `Meta` (`Meta:*`). Opcional: sin credenciales solo hay avisos internos. Ver `docs/requerimiento/whatsapp-evolution.md`. |
 | `Notifications:ScheduleIntervalMinutes` | Cada cuánto se generan los avisos programados (60 min). |
+| `Seeding:Enabled` | `true` carga al arrancar los datos del ministerio 2026. Ver [Carga inicial](#carga-inicial). |
 
 ### CORS
 
@@ -71,6 +72,16 @@ En todos: métodos `GET`, `POST`, `PUT`, `PATCH`, `DELETE`; cabeceras `Authoriza
 Cada origen se valida al arrancar: debe ser exactamente `esquema://host[:puerto]`, sin barra final ni ruta, `https`
 fuera de desarrollo y nunca `*`. Si algún día el frontend se sirve desde otro dominio, agrégalo en
 `appsettings.Production.json` o con `CorsSettings__AllowedOrigins__0`.
+
+### Carga inicial
+
+Con `Seeding:Enabled=true` (variable `Seeding__Enabled` o user-secrets), `SheepfoldSeeder` inserta al arrancar
+`Infrastructure/Persistence/Seeding/sheepfold-seed.json`: la generación PAPÁS, el curso FACTER, 18 tipos de evento,
+los 12 grupos de 2026 con sus líderes y coordinadores, 307 asistentes (46 sin grupo, visibles solo para directores)
+con sus cursos y los padres de PAPÁS como contacto, y los 48 eventos del cronograma (finalizados los que ya pasaron).
+Va en una sola transacción y solo una vez: si la generación PAPÁS existe no hace nada. Requisitos: la base migrada
+y **Identity sembrado antes**, porque las responsabilidades apuntan a sus cuentas por Id. El JSON se genera desde
+los Excel con `docs/resources/bases-grupos/generar-semillas.py` (`python -I`, requiere `openpyxl`).
 
 ## Autenticación
 
