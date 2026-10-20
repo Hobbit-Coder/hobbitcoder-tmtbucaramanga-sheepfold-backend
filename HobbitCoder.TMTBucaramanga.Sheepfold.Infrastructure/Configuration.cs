@@ -2,6 +2,7 @@ using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Common.Interfaces;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Infrastructure.Integration;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Infrastructure.Persistence.Contexts;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Infrastructure.Persistence.Interceptors;
+using HobbitCoder.TMTBucaramanga.Sheepfold.Infrastructure.Persistence.Seeding;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -21,6 +22,7 @@ public static class Configuration
     {
         builder.Services.AddScoped<IApplicationDbContext>(serviceProvider => serviceProvider.GetRequiredService<SheepfoldContext>());
         builder.Services.AddScoped<AuditableEntitySaveChangesInterceptor>();
+        builder.Services.AddHostedService<SheepfoldSeeder>();
 
         builder.AddIntegrations();
 

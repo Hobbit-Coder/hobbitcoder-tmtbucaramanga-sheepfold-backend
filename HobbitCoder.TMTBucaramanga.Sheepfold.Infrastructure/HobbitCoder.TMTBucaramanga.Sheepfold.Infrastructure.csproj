@@ -9,6 +9,10 @@
 	</ItemGroup>
 	
 	<ItemGroup>
+		<EmbeddedResource Include="Persistence\Seeding\sheepfold-seed.json" LogicalName="SheepfoldSeed.json" />
+	</ItemGroup>
+
+	<ItemGroup>
 	  <ProjectReference Include="..\HobbitCoder.TMTBucaramanga.Sheepfold.Application\HobbitCoder.TMTBucaramanga.Sheepfold.Application.csproj" />
 	</ItemGroup>
 </Project>
