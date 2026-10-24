@@ -19,6 +19,6 @@ public sealed class DirectoryUser
 
     public string FullName => $"{FirstName} {LastName}";
 
-    /// <summary>Director, coordinador, líder o aprendiz: participa de la operación ministerial.</summary>
+    /// <summary>Director, coordinador, líder, aprendiz o sniper: participa de la operación ministerial.</summary>
     public bool IsMinistry => Role is not UserRole.Admin;
 }

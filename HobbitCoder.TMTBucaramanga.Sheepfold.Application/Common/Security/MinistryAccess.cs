@@ -38,10 +38,10 @@ public sealed class MinistryAccess
 
     public bool IsAdmin => Role == UserRole.Admin;
 
-    /// <summary>Director, coordinador, líder o aprendiz.</summary>
-    public bool IsMinistry => Role is UserRole.Director or UserRole.Coordinator or UserRole.Leader or UserRole.Apprentice;
+    /// <summary>Director, coordinador, líder, aprendiz o sniper.</summary>
+    public bool IsMinistry => Role is UserRole.Director or UserRole.Coordinator or UserRole.Leader or UserRole.Apprentice or UserRole.Sniper;
 
-    /// <summary>Puede registrar seguimientos: director, coordinador o líder; nunca el aprendiz.</summary>
+    /// <summary>Puede registrar seguimientos: director, coordinador o líder; nunca el aprendiz ni el sniper.</summary>
     public bool CanFollowUp => Role is UserRole.Director or UserRole.Coordinator or UserRole.Leader;
 
     /// <summary>
@@ -102,7 +102,10 @@ public sealed class MinistryAccess
         return _scope;
     }
 
-    /// <summary>Asistentes que el usuario consulta y edita: los de sus grupos, o todos para el director.</summary>
+    /// <summary>
+    /// Asistentes que el usuario consulta y edita: todos para el director; los de sus grupos para los demás y,
+    /// para el sniper, además todos los que están en un grupo activo.
+    /// </summary>
     public async Task<IQueryable<Attendee>> AttendeesInScopeAsync(IQueryable<Attendee> attendees, CancellationToken cancellationToken)
     {
         var scope = await GetScopeAsync(cancellationToken);
@@ -113,7 +116,9 @@ public sealed class MinistryAccess
         }
 
         var groupIds = scope.OperationalGroupIds;
-        return attendees.Where(attendee => attendee.Memberships.Any(membership => membership.EndedAt == null && groupIds.Contains(membership.GroupId)));
+        var anyActiveGroup = scope.Role == UserRole.Sniper;
+        return attendees.Where(attendee => attendee.Memberships.Any(membership => membership.EndedAt == null
+            && (groupIds.Contains(membership.GroupId) || (anyActiveGroup && membership.Group.IsActive))));
     }
 
     /// <exception cref="NotFoundException">El asistente no existe o no está en el alcance (no se distingue).</exception>
@@ -181,6 +186,7 @@ public sealed class MinistryAccess
     /// <summary>
     /// Usuarios inferiores a quienes puede hacer seguimiento: el director a coordinadores, líderes y
     /// aprendices; el coordinador a líderes y aprendices de sus grupos; el líder a los aprendices de su grupo.
+    /// El sniper no está en la jerarquía aunque sea aprendiz de un grupo.
     /// </summary>
     public async Task<HashSet<Guid>> InferiorUserIdsAsync(IReadOnlyDictionary<Guid, DirectoryUser> directory, CancellationToken cancellationToken)
     {
@@ -214,7 +220,7 @@ public sealed class MinistryAccess
             .Distinct()
             .ToListAsync(cancellationToken);
 
-        return userIds.Where(userId => userId != scope.UserId).ToHashSet();
+        return userIds.Where(userId => userId != scope.UserId && directory.GetValueOrDefault(userId)?.Role != UserRole.Sniper).ToHashSet();
     }
 
     /// <summary>

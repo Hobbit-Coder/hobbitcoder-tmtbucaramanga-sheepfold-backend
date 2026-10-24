@@ -1,4 +1,6 @@
 using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Attendees.Common;
+using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Context.Common;
+using HobbitCoder.TMTBucaramanga.Sheepfold.Application.FollowUps.Common;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Groups.Common;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Enums;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Infrastructure.Persistence.Contexts;
@@ -125,6 +127,42 @@ public class OrganizationTests : IClassFixture<SheepfoldApiFixture>
 
         Assert.Equal(HttpStatusCode.Forbidden, denied.StatusCode);
         Assert.Equal(HttpStatusCode.NoContent, transferred.StatusCode);
+    }
+
+    [Fact]
+    public async Task Sniper_ManagesEveryCurrentAttendee_WithoutFollowUpsNorRetirement()
+    {
+        var groupId = await _scenario.CreateGroupAsync();
+        var sniper = _fixture.AddUser(UserRole.Sniper);
+        var attendee = await _scenario.CreateAttendeeAsync(groupId);
+
+        var list = await _scenario.GetAsync<Page<AttendeeListItem>>($"/api/attendees?groupId={groupId}", sniper.Token);
+        var profile = await _scenario.GetAsync<AttendeeProfileResponse>($"/api/attendees/{attendee}", sniper.Token);
+        using var updated = await _scenario.SendAsync(HttpMethod.Put, $"/api/attendees/{attendee}", sniper.Token,
+            new { firstName = "Ana", lastName = "Sniper", isServer = false, isActive = true });
+
+        Assert.Contains(list.Items, item => item.Id == attendee);
+        Assert.False(profile.Capabilities.FollowUp);
+        Assert.False(profile.Capabilities.Retire);
+        Assert.False(profile.Capabilities.Transfer);
+        Assert.Equal(HttpStatusCode.NoContent, updated.StatusCode);
+    }
+
+    [Fact]
+    public async Task Sniper_CanBeAnApprentice_ButStaysOutOfTheHierarchy()
+    {
+        var groupId = await _scenario.CreateGroupAsync();
+        var leader = _fixture.AddUser(UserRole.Leader);
+        var sniper = _fixture.AddUser(UserRole.Sniper);
+        await _scenario.SetTeamAsync(groupId, leaders: [leader.Id], apprentices: [sniper.Id]);
+
+        var subjects = await _scenario.GetAsync<List<FollowUpSubject>>("/api/follow-ups/subjects", leader.Token);
+        var context = await _scenario.GetAsync<MyContextResponse>("/api/me/context", sniper.Token);
+
+        Assert.DoesNotContain(subjects, subject => subject.Id == sniper.Id);
+        Assert.Contains(context.Groups, group => group.GroupId == groupId && group.Responsibility == GroupResponsibility.Apprentice);
+        Assert.False(context.Capabilities.FollowUps);
+        Assert.False(context.Capabilities.CreateEvents);
     }
 
     [Fact]

@@ -74,7 +74,8 @@ public class SetGroupTeamCommandHandler : IRequestHandler<SetGroupTeamCommand, U
 
     /// <summary>
     /// Cada responsabilidad exige el rol de la cuenta: coordinador con rol Coordinador; líder con rol Líder o
-    /// Coordinador; aprendiz con rol Aprendiz. Solo cuentas activas.
+    /// Coordinador; aprendiz con rol Aprendiz o Sniper (que conserva su rol, como el coordinador que lidera).
+    /// Solo cuentas activas.
     /// </summary>
     private static void ValidateTeam(IEnumerable<(Guid UserId, GroupResponsibility Responsibility)> team, IReadOnlyDictionary<Guid, DirectoryUser> directory)
     {
@@ -87,7 +88,7 @@ public class SetGroupTeamCommandHandler : IRequestHandler<SetGroupTeamCommand, U
             {
                 GroupResponsibility.Coordinator => user?.Role == UserRole.Coordinator,
                 GroupResponsibility.Leader => user?.Role is UserRole.Leader or UserRole.Coordinator,
-                _ => user?.Role == UserRole.Apprentice
+                _ => user?.Role is UserRole.Apprentice or UserRole.Sniper
             };
 
             if (user is null || !user.IsActive || !allowed)

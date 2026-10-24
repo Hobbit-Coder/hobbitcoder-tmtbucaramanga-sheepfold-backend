@@ -11,6 +11,7 @@ public static class RoleLabels
         UserRole.Coordinator => "Coordinador",
         UserRole.Leader => "Líder",
         UserRole.Apprentice => "Aprendiz",
+        UserRole.Sniper => "Sniper",
         UserRole.Admin => "Administrador",
         _ => null
     };

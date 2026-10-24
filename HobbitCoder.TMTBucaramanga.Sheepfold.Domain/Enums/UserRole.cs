@@ -7,5 +7,8 @@ public enum UserRole
     Director = 2,
     Coordinator = 3,
     Leader = 4,
-    Apprentice = 5
+    Apprentice = 5,
+
+    /// <summary>Del ministerio sin estar en la jerarquía: administra los asistentes vigentes. Puede ser aprendiz de un grupo.</summary>
+    Sniper = 6
 }
