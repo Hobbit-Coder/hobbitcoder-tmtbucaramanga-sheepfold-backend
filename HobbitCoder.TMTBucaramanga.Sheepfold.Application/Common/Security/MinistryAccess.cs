@@ -44,6 +44,9 @@ public sealed class MinistryAccess
     /// <summary>Puede registrar seguimientos: director, coordinador o líder; nunca el aprendiz ni el sniper.</summary>
     public bool CanFollowUp => Role is UserRole.Director or UserRole.Coordinator or UserRole.Leader;
 
+    /// <summary>Consulta reportes de su alcance: el ministerio salvo el sniper, que solo administra asistentes.</summary>
+    public bool CanViewReports => IsMinistry && Role != UserRole.Sniper;
+
     /// <summary>
     /// El director siempre; los demás solo con la designación, que permite asignar y trasladar a cualquier grupo
     /// activo pero no amplía qué asistentes consultan o editan.

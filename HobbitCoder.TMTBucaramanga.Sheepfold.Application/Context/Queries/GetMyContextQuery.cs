@@ -57,7 +57,7 @@ public class GetMyContextQueryHandler : IRequestHandler<GetMyContextQuery, MyCon
             CreateEvents = isDirector || (role is UserRole.Coordinator or UserRole.Leader && managesGroups),
             FollowUps = _access.CanFollowUp,
             RegisterAttendees = _access.CanRegisterAttendees,
-            Reports = _access.IsMinistry,
+            Reports = _access.CanViewReports,
             Audit = isDirector,
             ManageConfiguration = _access.IsAdmin,
             ViewConfiguration = _access.IsAdmin || isDirector,

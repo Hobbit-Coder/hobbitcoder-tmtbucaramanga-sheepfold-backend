@@ -166,6 +166,18 @@ public class OrganizationTests : IClassFixture<SheepfoldApiFixture>
     }
 
     [Fact]
+    public async Task Sniper_DoesNotSeeReports()
+    {
+        var sniper = _fixture.AddUser(UserRole.Sniper);
+
+        var context = await _scenario.GetAsync<MyContextResponse>("/api/me/context", sniper.Token);
+        using var report = await _scenario.SendAsync(HttpMethod.Get, "/api/reports/Attendance?from=2026-10-01&to=2026-10-31", sniper.Token);
+
+        Assert.False(context.Capabilities.Reports);
+        Assert.Equal(HttpStatusCode.Forbidden, report.StatusCode);
+    }
+
+    [Fact]
     public async Task Pulso_RequiresALegalGuardian()
     {
         var groupId = await _scenario.CreateGroupAsync(MinistryScenario.Pulso);

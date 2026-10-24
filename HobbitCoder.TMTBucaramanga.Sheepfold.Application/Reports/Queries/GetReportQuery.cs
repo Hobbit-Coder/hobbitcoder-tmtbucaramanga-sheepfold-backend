@@ -48,7 +48,7 @@ public class GetReportQueryHandler : IRequestHandler<GetReportQuery, ReportRespo
         var scope = await _access.GetScopeAsync(cancellationToken);
         var settings = await _dbContext.OperationalSettings.AsNoTracking().FirstAsync(cancellationToken);
 
-        if (request.Family == ReportFamily.FollowUps && !_access.CanFollowUp)
+        if (!_access.CanViewReports || (request.Family == ReportFamily.FollowUps && !_access.CanFollowUp))
         {
             throw new ForbiddenAccessException();
         }
