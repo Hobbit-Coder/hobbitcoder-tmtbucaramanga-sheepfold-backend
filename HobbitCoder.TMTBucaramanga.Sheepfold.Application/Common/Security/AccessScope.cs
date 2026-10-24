@@ -43,6 +43,9 @@ public sealed class AccessScope
     /// <summary>Grupos activos para los que puede crear eventos: los que coordina o lidera.</summary>
     public HashSet<Guid> EventGroupIds => Role is UserRole.Coordinator or UserRole.Leader ? ActiveManagedGroupIds : [];
 
+    /// <summary>Grupos activos a los que traslada sin la designación de registrar asistentes: los que coordina o lidera.</summary>
+    public HashSet<Guid> TransferGroupIds => Role is UserRole.Coordinator or UserRole.Leader ? ActiveManagedGroupIds : [];
+
     private HashSet<Guid> Ids(GroupResponsibility responsibility) =>
         Groups.Where(group => group.Responsibility == responsibility).Select(group => group.GroupId).ToHashSet();
 }

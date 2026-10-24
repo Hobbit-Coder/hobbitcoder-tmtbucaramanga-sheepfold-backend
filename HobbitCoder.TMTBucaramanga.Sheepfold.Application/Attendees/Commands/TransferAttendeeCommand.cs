@@ -45,14 +45,15 @@ public class TransferAttendeeCommandHandler : IRequestHandler<TransferAttendeeCo
     ///     Atiende &lt;see cref="TransferAttendeeCommand"/&gt;.
     /// </summary>
     /// <remarks>
-    ///     Trasladan el director y, entre grupos de su alcance, el coordinador o el líder; el aprendiz no.
+    ///     Trasladan a cualquier grupo activo el director y quien tiene la designación de registrar asistentes; sin
+    ///     ella, el coordinador o el líder solo a los grupos que administran. En todos los casos, asistentes de su alcance.
     /// </remarks>
     public async Task<Unit> Handle(TransferAttendeeCommand request, CancellationToken cancellationToken = default)
     {
         var attendee = await _access.FindAttendeeInScopeAsync(request.Id, cancellationToken);
         var scope = await _access.GetScopeAsync(cancellationToken);
 
-        if (!scope.IsDirector && (scope.Role is not (UserRole.Coordinator or UserRole.Leader) || !scope.ActiveManagedGroupIds.Contains(request.GroupId)))
+        if (!_access.CanRegisterAttendees && !scope.TransferGroupIds.Contains(request.GroupId))
         {
             throw new ForbiddenAccessException();
         }

@@ -106,6 +106,28 @@ public class OrganizationTests : IClassFixture<SheepfoldApiFixture>
     }
 
     [Fact]
+    public async Task Registrar_TransfersToAnyActiveGroup_AndOnlyThemSeeEveryGroupAsDestination()
+    {
+        var led = await _scenario.CreateGroupAsync();
+        var other = await _scenario.CreateGroupAsync();
+        var leader = _fixture.AddUser(UserRole.Leader);
+        var registrar = _fixture.AddUser(UserRole.Leader, canRegisterAttendees: true);
+        await _scenario.SetTeamAsync(led, leaders: [leader.Id, registrar.Id]);
+        var attendee = await _scenario.CreateAttendeeAsync(led);
+
+        var leaderDestinations = await _scenario.GetAsync<List<DestinationGroupResponse>>("/api/groups/destinations", leader.Token);
+        var registrarDestinations = await _scenario.GetAsync<List<DestinationGroupResponse>>("/api/groups/destinations", registrar.Token);
+        Assert.Equal([led], leaderDestinations.Select(group => group.Id));
+        Assert.Contains(registrarDestinations, group => group.Id == other);
+
+        using var denied = await _scenario.SendAsync(HttpMethod.Post, $"/api/attendees/{attendee}/transfer", leader.Token, new { groupId = other });
+        using var transferred = await _scenario.SendAsync(HttpMethod.Post, $"/api/attendees/{attendee}/transfer", registrar.Token, new { groupId = other });
+
+        Assert.Equal(HttpStatusCode.Forbidden, denied.StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, transferred.StatusCode);
+    }
+
+    [Fact]
     public async Task Pulso_RequiresALegalGuardian()
     {
         var groupId = await _scenario.CreateGroupAsync(MinistryScenario.Pulso);

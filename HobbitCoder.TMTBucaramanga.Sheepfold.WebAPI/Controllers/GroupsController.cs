@@ -102,6 +102,15 @@ public class GroupsController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>Grupos activos a los que el usuario puede registrar o trasladar asistentes.</summary>
+    [HttpGet("destinations")]
+    [ProducesResponseType<List<DestinationGroupResponse>>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<List<DestinationGroupResponse>>> GetDestinationsAsync(CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send<GetDestinationGroupsQuery, List<DestinationGroupResponse>>(new GetDestinationGroupsQuery(), cancellationToken);
+        return Ok(result);
+    }
+
     [HttpGet("renewal")]
     [ProducesResponseType<RenewalOverviewResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]

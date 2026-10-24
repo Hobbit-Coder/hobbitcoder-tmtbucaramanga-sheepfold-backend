@@ -44,7 +44,10 @@ public sealed class MinistryAccess
     /// <summary>Puede registrar seguimientos: director, coordinador o líder; nunca el aprendiz.</summary>
     public bool CanFollowUp => Role is UserRole.Director or UserRole.Coordinator or UserRole.Leader;
 
-    /// <summary>El director siempre; los demás solo con la designación. La designación no amplía la edición.</summary>
+    /// <summary>
+    /// El director siempre; los demás solo con la designación, que permite asignar y trasladar a cualquier grupo
+    /// activo pero no amplía qué asistentes consultan o editan.
+    /// </summary>
     public bool CanRegisterAttendees =>
         IsDirector || (IsMinistry && _currentUserService.HasPermission(RegisterAttendeesPermission));
 
