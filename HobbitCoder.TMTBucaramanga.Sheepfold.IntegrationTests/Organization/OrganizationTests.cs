@@ -122,6 +122,11 @@ public class OrganizationTests : IClassFixture<SheepfoldApiFixture>
         Assert.Equal([led], leaderDestinations.Select(group => group.Id));
         Assert.Contains(registrarDestinations, group => group.Id == other);
 
+        var leaderProfile = await _scenario.GetAsync<AttendeeProfileResponse>($"/api/attendees/{attendee}", leader.Token);
+        var registrarProfile = await _scenario.GetAsync<AttendeeProfileResponse>($"/api/attendees/{attendee}", registrar.Token);
+        Assert.False(leaderProfile.Capabilities.Transfer);
+        Assert.True(registrarProfile.Capabilities.Transfer);
+
         using var denied = await _scenario.SendAsync(HttpMethod.Post, $"/api/attendees/{attendee}/transfer", leader.Token, new { groupId = other });
         using var transferred = await _scenario.SendAsync(HttpMethod.Post, $"/api/attendees/{attendee}/transfer", registrar.Token, new { groupId = other });
 

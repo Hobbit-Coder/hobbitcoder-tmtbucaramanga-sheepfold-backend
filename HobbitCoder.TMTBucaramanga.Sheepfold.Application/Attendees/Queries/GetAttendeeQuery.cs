@@ -74,7 +74,7 @@ public class GetAttendeeQueryHandler : IRequestHandler<GetAttendeeQuery, Attende
             Capabilities = new AttendeeCapabilities
             {
                 Edit = true,
-                Transfer = _access.CanRegisterAttendees || (scope.Role is UserRole.Coordinator or UserRole.Leader && managesGroup),
+                Transfer = _access.CanRegisterAttendees || (managesGroup && scope.TransferGroupIds.Any(groupId => groupId != membership!.GroupId)),
                 FollowUp = scope.IsDirector || (_access.CanFollowUp && managesGroup),
                 Retire = scope.IsDirector
             }
