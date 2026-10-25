@@ -2,6 +2,7 @@ using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Common.Interfaces;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Domain.Entities.Common;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System.Linq.Expressions;
 
 namespace HobbitCoder.TMTBucaramanga.Sheepfold.Infrastructure.Persistence.Contexts;
@@ -46,11 +47,19 @@ public class SheepfoldContext : DbContext, IApplicationDbContext
     public DbSet<OperationalSettings> OperationalSettings => Set<OperationalSettings>();
     public DbSet<AuditEntry> AuditEntries => Set<AuditEntry>();
 
-    /// <summary>Los enums se guardan por nombre: la base se lee sin tablas de códigos.</summary>
+    /// <summary>
+    /// Los enums se guardan por nombre: la base se lee sin tablas de códigos. Las fechas se guardan en UTC y se
+    /// leen marcadas como UTC: SQL Server las devuelve sin zona y la API las enviaría sin la <c>Z</c>.
+    /// </summary>
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
         configurationBuilder.Properties<Enum>().HaveConversion<string>().HaveMaxLength(EnumMaxLength);
+        configurationBuilder.Properties<DateTime>().HaveConversion<UtcDateTimeConverter>();
+        configurationBuilder.Properties<DateTime?>().HaveConversion<UtcDateTimeConverter>();
     }
+
+    private sealed class UtcDateTimeConverter() : ValueConverter<DateTime, DateTime>(
+        value => value, value => DateTime.SpecifyKind(value, DateTimeKind.Utc));
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
