@@ -149,6 +149,18 @@ public class OversightTests : IClassFixture<SheepfoldApiFixture>
         Assert.Equal(HttpStatusCode.Forbidden, directorCreate.StatusCode);
     }
 
+    /// <summary>Sin avisos internos no queda registro de lo avisado y los programados se repetirían por WhatsApp.</summary>
+    [Fact]
+    public async Task InAppNotifications_CannotBeDisabled()
+    {
+        var admin = _fixture.AddUser(UserRole.Admin);
+        var options = new { channels = new Dictionary<string, bool> { ["InApp"] = false, ["WhatsApp"] = true }, kinds = new Dictionary<string, bool>() };
+
+        using var response = await _scenario.SendAsync(HttpMethod.Put, "/api/settings/notifications", admin.Token, options);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
     [Fact]
     public async Task Audit_IsOnlyForDirectors_AndRecordsAttendanceCorrections()
     {

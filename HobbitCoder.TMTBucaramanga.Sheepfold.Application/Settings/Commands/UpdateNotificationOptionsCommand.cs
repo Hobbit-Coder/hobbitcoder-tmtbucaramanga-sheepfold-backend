@@ -1,3 +1,4 @@
+using FluentValidation;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Common.Audit;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Common.Interfaces;
 using HobbitCoder.TMTBucaramanga.Sheepfold.Application.Common.Security;
@@ -55,5 +56,19 @@ public class UpdateNotificationOptionsCommandHandler : IRequestHandler<UpdateNot
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         return Unit.Value;
+    }
+}
+
+/// <summary>
+/// Los avisos internos no se apagan: son el registro de lo ya avisado, y sin él los avisos programados se
+/// repetirían por WhatsApp en cada vuelta.
+/// </summary>
+public class UpdateNotificationOptionsCommandValidator : AbstractValidator<UpdateNotificationOptionsCommand>
+{
+    public UpdateNotificationOptionsCommandValidator()
+    {
+        RuleFor(command => command.Channels)
+            .Must(channels => channels.GetValueOrDefault(NotificationChannel.InApp, true))
+            .WithMessage("In-app notifications cannot be disabled");
     }
 }
